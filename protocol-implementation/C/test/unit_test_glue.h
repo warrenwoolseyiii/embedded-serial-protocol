@@ -8,9 +8,9 @@ extern "C"
 {
 #endif
 
-uint8_t get_user_tx_notify();
-void clear_user_tx_notify();
-uint8_t *get_user_tx_buff_ptr();
+    uint8_t get_user_tx_notify();
+    void clear_user_tx_notify();
+    uint8_t *get_user_tx_buff_ptr();
 
 #ifdef __cplusplus
 }
