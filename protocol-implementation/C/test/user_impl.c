@@ -1,5 +1,6 @@
 #include "../src/user_impl.h"
 #include "../src/serial_protocol.h"
+#include "unit_test_glue.h"
 #include <string.h>
 #include <printf.h>
 
@@ -37,4 +38,19 @@ void user_serial_tx(uint8_t *msg_buf, uint32_t msg_len)
     for (uint32_t i = 0; i < msg_len; i++)
         printf("%X", msg_buf[i]);
     printf("\n");
+}
+
+uint8_t get_user_tx_notify()
+{
+    return global_tx_notify;
+}
+
+void clear_user_tx_notify()
+{
+    global_tx_notify = 0;
+}
+
+uint8_t *get_user_tx_buff_ptr()
+{
+    return global_tx_buff;
 }
