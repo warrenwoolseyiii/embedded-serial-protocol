@@ -2,7 +2,7 @@
 #include "../src/serial_protocol.h"
 #include "unit_test_glue.h"
 #include <string.h>
-#include <printf.h>
+#include <stdio.h>
 
 // RX Types
 #define RX_TYPE_0 0
@@ -19,8 +19,23 @@ message_descriptor_t rx_type_0 = {RX_TYPE_0, 0};
 message_descriptor_t rx_type_1 = {RX_TYPE_1, MAX_PAYLOAD_LEN};
 message_descriptor_t rx_type_2 = {RX_TYPE_2, 8};
 
+// Global buffer and rx notification
+uint8_t global_rx_buf[RX_BUFFER_LEN];
+uint8_t global_rx_notify = 0;
 void user_rcv_message(uint8_t *msg_buf, uint32_t msg_len)
 {
+    memcpy(global_rx_buf, msg_buf, msg_len);
+    global_rx_notify = 1;
+}
+
+uint8_t get_user_rx_notify()
+{
+    return global_rx_notify;
+}
+
+void clear_user_rx_notify()
+{
+    global_rx_notify = 0;
 }
 
 // Global buffer and tx notifitcaion
@@ -34,7 +49,7 @@ void user_serial_tx(uint8_t *msg_buf, uint32_t msg_len)
     global_tx_notify = 1;
 
     // Print the message
-    printf("user_serial_tx sending:");
+    printf("user_serial_tx sending %d bytes:", msg_len);
     for (uint32_t i = 0; i < msg_len; i++)
         printf("%X", msg_buf[i]);
     printf("\n");

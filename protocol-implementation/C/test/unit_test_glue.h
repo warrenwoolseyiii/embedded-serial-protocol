@@ -8,6 +8,8 @@ extern "C"
 {
 #endif
 
+    uint8_t get_user_rx_notify();
+    void clear_user_rx_notify();
     uint8_t get_user_tx_notify();
     void clear_user_tx_notify();
     uint8_t *get_user_tx_buff_ptr();
