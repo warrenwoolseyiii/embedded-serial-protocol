@@ -7,6 +7,7 @@ tx_notify = False
 # Set to true if you want debug prints
 DEBUG = False
 
+
 # Setters of the global rx / tx notify flags
 def user_set_rx_notify(notify):
     global rx_notify
@@ -47,6 +48,7 @@ def user_handle_message(msg):
 
     # TODO: User code to receive the message here
 
+
 # User implementation of message sender
 def user_send_message(msg):
     # Throw an exception if this gets called with an improper message type
@@ -60,4 +62,3 @@ def user_send_message(msg):
     user_set_tx_notify(True)
 
     # TODO: User code to send the message here
-    

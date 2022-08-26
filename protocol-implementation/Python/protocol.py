@@ -63,6 +63,7 @@ p_state = parsing_state(0)
 # Current message global variable
 current_msg = message(0, 0, 0, 0, [], 0)
 
+
 # Calculate the CRC of the message
 def calculate_crc(msg):
     crc = 0xFFFF
