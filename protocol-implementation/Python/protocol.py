@@ -1,6 +1,7 @@
 from enum import Enum
 import user_impl as user
 
+
 class message:
     msg_type = 0
     src_addr = 0
@@ -9,16 +10,20 @@ class message:
     msg_payload = []
     msg_crc = 0
 
-    def __init__(self, msg_type, src_addr, tgt_addr, msg_len, msg_payload, msg_crc):
+    def __init__(self, msg_type, src_addr, tgt_addr, msg_len, msg_payload,
+                 msg_crc):
         self.msg_type = msg_type
         self.src_addr = src_addr
         self.tgt_addr = tgt_addr
         self.msg_len = msg_len
         self.msg_payload = msg_payload
         self.msg_crc = msg_crc
-    
+
     def __str__(self):
-        return "msg_type: {}, src_addr: {}, tgt_addr: {}, msg_len: {}, msg_payload: {}, msg_crc: {}".format(self.msg_type, self.src_addr, self.tgt_addr, self.msg_len, self.msg_payload, self.msg_crc)
+        return "msg_type: {}, src_addr: {}, tgt_addr: {}, msg_len: {}, msg_payload: {}, msg_crc: {}".format(
+            hex(self.msg_type), hex(self.src_addr), hex(self.tgt_addr),
+            hex(self.msg_len), self.msg_payload, hex(self.msg_crc))
+
 
 # Enumeration of the states in the state machine
 class parsing_state(Enum):
@@ -34,10 +39,12 @@ class parsing_state(Enum):
     CRC_POS_1 = 9
     CRC_POS_2 = 10
 
+
 # Enumeration of errors in the state machine
 class error_state(Enum):
     NO_ERROR = 0
     ILLEGAL_MESSAGE_LENGTH = 1
+
 
 # Constant values for the protocol
 HEADER_BYTE0 = 0xAA
@@ -54,7 +61,8 @@ MAX_MSG_LEN = 65535
 p_state = parsing_state.HEADER_POS0
 
 # Current message global variable
-current_msg = message(0, 0, 0, 0, [])
+current_msg = message(0, 0, 0, 0, [], 0)
+
 
 # Calculate the CRC of the message
 def calculate_crc(msg):
@@ -80,10 +88,12 @@ def calculate_crc(msg):
                 crc = crc >> 1
     return crc
 
+
 # Reset the parsing state machine
 def reset_parsing_state():
     p_state = parsing_state.HEADER_POS0
     current_msg = message(0, 0, 0, 0, [])
+
 
 # Parse the incoming byte in the state machine
 def parse_byte(byte):
@@ -122,16 +132,17 @@ def parse_byte(byte):
         else:
             p_state = parsing_state.CRC_POS_1
     elif p_state == parsing_state.PAYLOAD_START_POS:
-            current_msg.msg_payload.append(byte)
-            if len(current_msg.msg_payload) == current_msg.msg_len:
-                p_state = parsing_state.CRC_POS_1
+        current_msg.msg_payload.append(byte)
+        if len(current_msg.msg_payload) == current_msg.msg_len:
+            p_state = parsing_state.CRC_POS_1
     elif p_state == parsing_state.CRC_POS_1:
         current_msg.msg_crc = byte << 8
         p_state = parsing_state.CRC_POS_2
     elif p_state == parsing_state.CRC_POS_2:
         current_msg.msg_crc |= byte
         # Check the CRC
-        if current_msg.msg_crc == calculate_crc(current_msg) and current_msg.tgt_addr == MY_ADDR:
+        if current_msg.msg_crc == calculate_crc(
+                current_msg) and current_msg.tgt_addr == MY_ADDR:
             # CRC is good, send the message to the message handler
             user.user_handle_message(current_msg)
             reset_parsing_state()
@@ -139,20 +150,26 @@ def parse_byte(byte):
             # CRC is bad, reset the parsing state machine
             reset_parsing_state()
 
+
 # Parse an incoming list of bytes into the state machine
 def parse_input_buffer(input_buffer):
     # Parse the input buffer into the state machine
     for byte in input_buffer:
         parse_byte(byte)
 
+
 # Send a message to the message handler
-def send_message(msg_type, tgt_addr, msg_payload):
+def send_message(type, addr, payload):
+    # Check for null payload
+    if payload is None:
+        payload = []
+    
     # Make sure we don't have an illegal length
-    if len(msg_payload) > MAX_MSG_LEN:
+    if len(payload) > MAX_MSG_LEN:
         return error_state.ILLEGAL_MESSAGE_LENGTH
 
     # Create the message
-    msg = message(msg_type, MY_ADDR, tgt_addr, len(msg_payload), msg_payload)
+    msg = message(type, MY_ADDR, addr, len(payload), payload, 0)
     # Calculate the CRC
     msg.msg_crc = calculate_crc(msg)
     # Send the message

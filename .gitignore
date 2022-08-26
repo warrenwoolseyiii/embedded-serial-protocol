@@ -2,4 +2,4 @@
 protocol-implementation/C/test/build
 
 # Python linking directory
-protocol-implementation/Python/src/__pycache__
+protocol-implementation/Python/__pycache__
