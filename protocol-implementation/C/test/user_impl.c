@@ -38,6 +38,11 @@ void clear_user_rx_notify()
     global_rx_notify = 0;
 }
 
+uint8_t *get_user_rx_buff_ptr()
+{
+    return global_rx_buf;
+}
+
 // Global buffer and tx notifitcaion
 uint8_t global_tx_buff[RX_BUFFER_LEN];
 uint8_t global_tx_notify = 0;
@@ -49,10 +54,10 @@ void user_serial_tx(uint8_t *msg_buf, uint32_t msg_len)
     global_tx_notify = 1;
 
     // Print the message
-    printf("user_serial_tx sending %d bytes:", msg_len);
-    for (uint32_t i = 0; i < msg_len; i++)
-        printf("%X", msg_buf[i]);
-    printf("\n");
+    //printf("user_serial_tx sending %d bytes:", msg_len);
+    //for (uint32_t i = 0; i < msg_len; i++)
+    //    printf("%X", msg_buf[i]);
+    //printf("\n");
 }
 
 uint8_t get_user_tx_notify()

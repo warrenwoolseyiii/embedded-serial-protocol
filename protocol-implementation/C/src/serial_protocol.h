@@ -45,8 +45,8 @@ extern "C"
 #define HEADER_1_VAL 0x55
 #define HEADER_2_VAL 0xFF
 
-// Define the maximum allowable payload length. Default is 256 bytes.
-#define MAX_PAYLOAD_LEN 256
+// Define the maximum allowable payload length. The maximum possible size is 65535 bytes.
+#define MAX_PAYLOAD_LEN 65535
 
 // Buffer length parameters
 #define NUM_OVER_HEAD_BYTES 10
@@ -65,6 +65,7 @@ extern "C"
 // Error codes
 #define SP_OK 0
 #define SP_ERR_ILLEGAL_MSG_LEN -1
+#define SP_ERR_NULL_PAYLOAD -2
 
     void parse_input_buffer(uint8_t *input_buffer, uint32_t max_length);
     int send_message(uint8_t dest_addr, uint8_t type, uint8_t *payload, uint32_t payload_length);

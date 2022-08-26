@@ -139,7 +139,7 @@ public:
   }
   uint32_t MakeRandomMessage(int optional_len = -1)
   {
-    uint8_t test_addr = 0;
+    uint8_t test_addr = MY_ADDR;
     uint8_t test_type = (rand() % 255) + 1;
     uint16_t test_payload_len = (rand() % MAX_PAYLOAD_LEN);
 
@@ -174,6 +174,98 @@ TEST_F(MessageParsing, Valid_Empty_Message)
   uint32_t len = MessageParsing::MakeRandomMessage(0);
   uint8_t *message = get_user_tx_buff_ptr();
 
+  // Parse the message
+  parse_input_buffer(message, len);
+  ASSERT_TRUE(get_user_rx_notify());
+  uint8_t *parsed = get_user_rx_buff_ptr();
+  ASSERT_EQ(memcmp(message, parsed, len), 0);
+}
+
+TEST_F(MessageParsing, Valid_Max_Length_Message)
+{
+  // use the helper function to make a message of max payload length
+  uint32_t len = MessageParsing::MakeRandomMessage(MAX_PAYLOAD_LEN);
+  uint8_t *message = get_user_tx_buff_ptr();
+
+  // Parse the message
+  parse_input_buffer(message, len);
+  ASSERT_TRUE(get_user_rx_notify());
+  uint8_t *parsed = get_user_rx_buff_ptr();
+  ASSERT_EQ(memcmp(message, parsed, len), 0);
+}
+
+TEST_F(MessageParsing, Valid_Random_Length_Message)
+{
+  // use the helper function to make a message of random length
+  uint32_t len = MessageParsing::MakeRandomMessage();
+  uint8_t *message = get_user_tx_buff_ptr();
+
+  // Parse the message
+  parse_input_buffer(message, len);
+  ASSERT_TRUE(get_user_rx_notify());
+  uint8_t *parsed = get_user_rx_buff_ptr();
+  ASSERT_EQ(memcmp(message, parsed, len), 0);
+}
+
+TEST_F(MessageParsing, Invalid_Preamble_Byte0)
+{
+  // use the helper function to make a message with random length
+  uint32_t len = MessageParsing::MakeRandomMessage();
+  uint8_t *message = get_user_tx_buff_ptr();
+  message[0] = 0xAB;
+
+  // Parse the message
+  parse_input_buffer(message, len);
+  ASSERT_FALSE(get_user_rx_notify());
+}
+
+TEST_F(MessageParsing, Invalid_Preamble_Byte1)
+{
+  // use the helper function to make a message with random length
+  uint32_t len = MessageParsing::MakeRandomMessage();
+  uint8_t *message = get_user_tx_buff_ptr();
+  message[1] = 0x56;
+
+  // Parse the message
+  parse_input_buffer(message, len);
+  ASSERT_FALSE(get_user_rx_notify());
+}
+
+TEST_F(MessageParsing, Invalid_Preamble_Byte2)
+{
+  // use the helper function to make a message with random length
+  uint32_t len = MessageParsing::MakeRandomMessage();
+  uint8_t *message = get_user_tx_buff_ptr();
+  message[2] = 0xFE;
+
+  // Parse the message
+  parse_input_buffer(message, len);
+  ASSERT_FALSE(get_user_rx_notify());
+}
+
+TEST_F(MessageParsing, Invalid_Target_addr)
+{
+  // use the helper function to make a message with random length
+  uint32_t len = MessageParsing::MakeRandomMessage();
+  uint8_t *message = get_user_tx_buff_ptr();
+  message[TGT_ADDR_POS] = MY_ADDR + 1;
+
+  // Parse the message
+  parse_input_buffer(message, len);
+  ASSERT_FALSE(get_user_rx_notify());
+}
+
+TEST_F(MessageParsing, Garbage_Byte_To_Message)
+{
+  // use the helper function to make a message with random length
+  uint32_t len = MessageParsing::MakeRandomMessage();
+  uint8_t *message = get_user_tx_buff_ptr();
+  
+  // Parse the garbage byte
+  uint8_t b = 0xFF;
+  parse_input_buffer(&b, 1);
+  ASSERT_FALSE(get_user_rx_notify());
+  
   // Parse the message
   parse_input_buffer(message, len);
   ASSERT_TRUE(get_user_rx_notify());

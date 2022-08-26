@@ -1,6 +1,7 @@
 #include "serial_protocol.h"
 #include "user_impl.h"
 #include <string.h>
+#include <stdio.h>
 
 uint32_t _parsing_index = 0;
 uint32_t _current_message_len = 0;
@@ -52,18 +53,21 @@ void _parse_input(uint8_t input)
             uint32_t crc_index = _current_message_len + PAYLOAD_START_POS;
             if (crc_index >= RX_BUFFER_LEN)
             {
+                printf("CRC index underflow\n");
                 _reset_parsing_state();
             }
             else
             {
                 // Check the CRC
                 uint16_t crc = _current_message[crc_index] << 8 | _current_message[crc_index + 1];
-                uint16_t calculated_crc = _crc16(_current_message, (crc_index - 1));
+                uint16_t calculated_crc = _crc16(_current_message, (crc_index));
 
                 // If the CRC is valid, and the message is meant for us, recieve the message!
                 uint8_t tgt_addr = _current_message[TGT_ADDR_POS];
-                if (crc == calculated_crc && tgt_addr == MY_ADDR)
+                if (crc == calculated_crc && tgt_addr == MY_ADDR) {
                     user_rcv_message(_current_message, total_len);
+                    _reset_parsing_state();
+                }
                 else
                     _reset_parsing_state();
             }
@@ -114,7 +118,7 @@ void _parse_input(uint8_t input)
 
 void parse_input_buffer(uint8_t *input_buffer, uint32_t max_length)
 {
-    for (int i = 0; i < max_length; i++)
+    for (uint32_t i = 0; i < max_length; i++)
         _parse_input(input_buffer[i]);
 }
 
@@ -139,6 +143,8 @@ int send_message(uint8_t dest_addr, uint8_t type, uint8_t *payload, uint32_t pay
     // Copy the payload in
     if (payload && payload_length > 0)
         memcpy(tx_buff + PAYLOAD_START_POS, payload, payload_length);
+    else if (payload_length > 0 && !payload)
+        return SP_ERR_NULL_PAYLOAD;
 
     // Calculate the CRC
     uint16_t crc = _crc16(tx_buff, payload_length + PAYLOAD_START_POS);
