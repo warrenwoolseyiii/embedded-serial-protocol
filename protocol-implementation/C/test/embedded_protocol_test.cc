@@ -146,7 +146,7 @@ public:
     // If we have a length set it here
     if (optional_len != -1)
       test_payload_len = (uint16_t)(optional_len & 0xFFFF);
-    
+
     // make the payload
     uint8_t test_payload[MAX_PAYLOAD_LEN];
     for (int i = 0; i < test_payload_len; i++)
@@ -157,7 +157,7 @@ public:
 
     // Return the result
     uint32_t total_len = (uint32_t)(NUM_OVER_HEAD_BYTES + test_payload_len);
-    if( ret != SP_OK)
+    if (ret != SP_OK)
       total_len = 0;
     return total_len;
   }
@@ -260,13 +260,70 @@ TEST_F(MessageParsing, Garbage_Byte_To_Message)
   // use the helper function to make a message with random length
   uint32_t len = MessageParsing::MakeRandomMessage();
   uint8_t *message = get_user_tx_buff_ptr();
-  
+
   // Parse the garbage byte
   uint8_t b = 0xFF;
   parse_input_buffer(&b, 1);
   ASSERT_FALSE(get_user_rx_notify());
+
+  // Parse the message
+  parse_input_buffer(message, len);
+  ASSERT_TRUE(get_user_rx_notify());
+  uint8_t *parsed = get_user_rx_buff_ptr();
+  ASSERT_EQ(memcmp(message, parsed, len), 0);
+}
+
+TEST_F(MessageParsing, Bad_CRC)
+{
+  // use the helper function to make a message with random length
+  uint32_t len = MessageParsing::MakeRandomMessage();
+  uint8_t *message = get_user_tx_buff_ptr();
+  message[len - 1] = 0xFF;
+
+  // Parse the message
+  parse_input_buffer(message, len);
+  ASSERT_FALSE(get_user_rx_notify());
+}
+
+TEST_F(MessageParsing, Back_To_Back_Messages)
+{
+  // use the helper function to make a message with random length
+  uint32_t len = MessageParsing::MakeRandomMessage();
+  uint8_t *message = get_user_tx_buff_ptr();
   
   // Parse the message
   parse_input_buffer(message, len);
   ASSERT_TRUE(get_user_rx_notify());
+  uint8_t *parsed = get_user_rx_buff_ptr();
+  ASSERT_EQ(memcmp(message, parsed, len), 0);
+
+  // Make another message
+  uint32_t len2 = MessageParsing::MakeRandomMessage();
+
+  // Parse the message
+  parse_input_buffer(message, len2);
+  ASSERT_TRUE(get_user_rx_notify());
+  parsed = get_user_rx_buff_ptr();
+  ASSERT_EQ(memcmp(message, parsed, len2), 0);
+}
+
+TEST_F(MessageParsing, Back_To_Back_Messages_Not_For_Me)
+{
+  // use the helper function to make a message with random length
+  uint32_t len = MessageParsing::MakeRandomMessage();
+  uint8_t *message = get_user_tx_buff_ptr();
+  message[TGT_ADDR_POS] = MY_ADDR + 1;
+
+  // Parse the message
+  parse_input_buffer(message, len);
+  ASSERT_FALSE(get_user_rx_notify());
+
+  // Make another message
+  uint32_t len2 = MessageParsing::MakeRandomMessage();
+  
+  // Parse the message
+  parse_input_buffer(message, len2);
+  ASSERT_TRUE(get_user_rx_notify());
+  uint8_t *parsed = get_user_rx_buff_ptr();
+  ASSERT_EQ(memcmp(message, parsed, len2), 0);
 }

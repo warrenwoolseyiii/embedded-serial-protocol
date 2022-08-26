@@ -54,10 +54,10 @@ void user_serial_tx(uint8_t *msg_buf, uint32_t msg_len)
     global_tx_notify = 1;
 
     // Print the message
-    //printf("user_serial_tx sending %d bytes:", msg_len);
-    //for (uint32_t i = 0; i < msg_len; i++)
+    // printf("user_serial_tx sending %d bytes:", msg_len);
+    // for (uint32_t i = 0; i < msg_len; i++)
     //    printf("%X", msg_buf[i]);
-    //printf("\n");
+    // printf("\n");
 }
 
 uint8_t get_user_tx_notify()

@@ -1,7 +1,6 @@
 #include "serial_protocol.h"
 #include "user_impl.h"
 #include <string.h>
-#include <stdio.h>
 
 uint32_t _parsing_index = 0;
 uint32_t _current_message_len = 0;
@@ -52,10 +51,7 @@ void _parse_input(uint8_t input)
             // Calculate the CRC index to prevent an underflow
             uint32_t crc_index = _current_message_len + PAYLOAD_START_POS;
             if (crc_index >= RX_BUFFER_LEN)
-            {
-                printf("CRC index underflow\n");
                 _reset_parsing_state();
-            }
             else
             {
                 // Check the CRC
@@ -64,7 +60,8 @@ void _parse_input(uint8_t input)
 
                 // If the CRC is valid, and the message is meant for us, recieve the message!
                 uint8_t tgt_addr = _current_message[TGT_ADDR_POS];
-                if (crc == calculated_crc && tgt_addr == MY_ADDR) {
+                if (crc == calculated_crc && tgt_addr == MY_ADDR)
+                {
                     user_rcv_message(_current_message, total_len);
                     _reset_parsing_state();
                 }
