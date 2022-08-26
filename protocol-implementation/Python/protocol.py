@@ -58,11 +58,10 @@ MY_ADDR = 0x01
 MAX_MSG_LEN = 65535
 
 # Parsing state global variable
-p_state = parsing_state.HEADER_POS0
+p_state = parsing_state(0)
 
 # Current message global variable
 current_msg = message(0, 0, 0, 0, [], 0)
-
 
 # Calculate the CRC of the message
 def calculate_crc(msg):
@@ -91,12 +90,16 @@ def calculate_crc(msg):
 
 # Reset the parsing state machine
 def reset_parsing_state():
+    global p_state
+    global current_msg
     p_state = parsing_state.HEADER_POS0
-    current_msg = message(0, 0, 0, 0, [])
+    current_msg = message(0, 0, 0, 0, [], 0)
 
 
 # Parse the incoming byte in the state machine
 def parse_byte(byte):
+    global p_state
+    global current_msg
     # Switch based on the state
     if p_state == parsing_state.HEADER_POS0:
         if byte == HEADER_BYTE0:
@@ -127,7 +130,10 @@ def parse_byte(byte):
         p_state = parsing_state.PAYLOAD_LEN_LSB_POS
     elif p_state == parsing_state.PAYLOAD_LEN_LSB_POS:
         current_msg.msg_len |= byte
-        if current_msg.msg_len > 0:
+        if current_msg.msg_len > MAX_MSG_LEN:
+            reset_parsing_state()
+            raise Exception("Message length too large")
+        elif current_msg.msg_len > 0:
             p_state = parsing_state.PAYLOAD_START_POS
         else:
             p_state = parsing_state.CRC_POS_1
@@ -153,9 +159,12 @@ def parse_byte(byte):
 
 # Parse an incoming list of bytes into the state machine
 def parse_input_buffer(input_buffer):
-    # Parse the input buffer into the state machine
-    for byte in input_buffer:
-        parse_byte(byte)
+    try:
+        # Parse the input buffer into the state machine
+        for byte in input_buffer:
+            parse_byte(byte)
+    except Exception as e:
+        print("Exception: " + str(e))
 
 
 # Send a message to the message handler
@@ -163,7 +172,7 @@ def send_message(type, addr, payload):
     # Check for null payload
     if payload is None:
         payload = []
-    
+
     # Make sure we don't have an illegal length
     if len(payload) > MAX_MSG_LEN:
         return error_state.ILLEGAL_MESSAGE_LENGTH
