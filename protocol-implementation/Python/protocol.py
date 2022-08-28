@@ -1,8 +1,14 @@
 from enum import Enum
-import user_impl as user
+
+
+# Enumeration of errors in the state machine
+class error_state(Enum):
+    NO_ERROR = 0
+    ILLEGAL_MESSAGE_LENGTH = 1
 
 
 class message:
+    error = error_state.NO_ERROR
     msg_type = 0
     src_addr = 0
     tgt_addr = 0
@@ -12,17 +18,18 @@ class message:
 
     def __init__(self, msg_type, src_addr, tgt_addr, msg_len, msg_payload,
                  msg_crc):
+        self.error = error_state.NO_ERROR
         self.msg_type = msg_type
         self.src_addr = src_addr
         self.tgt_addr = tgt_addr
         self.msg_len = msg_len
         self.msg_payload = msg_payload
         self.msg_crc = msg_crc
-
+        
     def __str__(self):
-        return "msg_type: {}, src_addr: {}, tgt_addr: {}, msg_len: {}, msg_payload: {}, msg_crc: {}".format(
+        return "msg_type: {}, src_addr: {}, tgt_addr: {}, msg_len: {}, msg_payload: {}, msg_crc: {}, error: {}".format(
             hex(self.msg_type), hex(self.src_addr), hex(self.tgt_addr),
-            hex(self.msg_len), self.msg_payload, hex(self.msg_crc))
+            hex(self.msg_len), self.msg_payload, hex(self.msg_crc), self.error)
 
 
 # Enumeration of the states in the state machine
@@ -38,12 +45,6 @@ class parsing_state(Enum):
     PAYLOAD_START_POS = 8
     CRC_POS_1 = 9
     CRC_POS_2 = 10
-
-
-# Enumeration of errors in the state machine
-class error_state(Enum):
-    NO_ERROR = 0
-    ILLEGAL_MESSAGE_LENGTH = 1
 
 
 # Constant values for the protocol
@@ -62,6 +63,18 @@ p_state = parsing_state(0)
 
 # Current message global variable
 current_msg = message(0, 0, 0, 0, [], 0)
+
+# Global parsed notification and storage
+parsed_message_queue = []
+message_available = False
+
+
+# Internal notify of a parsed message
+def notify_parsed_message(msg):
+    global parsed_message_queue
+    global message_available
+    parsed_message_queue.append(msg)
+    message_available = True
 
 
 # Calculate the CRC of the message
@@ -151,7 +164,7 @@ def parse_byte(byte):
         if current_msg.msg_crc == calculate_crc(
                 current_msg) and current_msg.tgt_addr == MY_ADDR:
             # CRC is good, send the message to the message handler
-            user.user_handle_message(current_msg)
+            notify_parsed_message(current_msg)
             reset_parsing_state()
         else:
             # CRC is bad, reset the parsing state machine
@@ -168,20 +181,33 @@ def parse_input_buffer(input_buffer):
         print("Exception: " + str(e))
 
 
+# Check for parsed messages in the queue
+def check_for_parsed_messages():
+    global parsed_message_queue
+    global message_available
+    if message_available:
+        message_available = False
+        queue = parsed_message_queue.copy()
+        parsed_message_queue.clear()
+        return queue
+    else:
+        return []
+
+
 # Send a message to the message handler
-def send_message(type, addr, payload):
+def build_message(type, addr, payload):
     # Check for null payload
     if payload is None:
         payload = []
 
     # Make sure we don't have an illegal length
     if len(payload) > MAX_MSG_LEN:
-        return error_state.ILLEGAL_MESSAGE_LENGTH
+        raise Exception("Message length too large")
 
     # Create the message
     msg = message(type, MY_ADDR, addr, len(payload), payload, 0)
     # Calculate the CRC
     msg.msg_crc = calculate_crc(msg)
-    # Send the message
-    user.user_send_message(msg)
-    return error_state.NO_ERROR
+    # Return the message
+    msg.error = error_state.NO_ERROR
+    return msg
