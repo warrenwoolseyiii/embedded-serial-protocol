@@ -1,11 +1,11 @@
 {
     "serial_config": {
-        "port": "/dev/ttyUSB0",
+        "port": "/dev/ttyACM0",
         "baud": 9600
     },
     "tester_config": {
         "my_address": "ab",
-        "target_address": "22"
+        "target_address": "ab"
     },
     "message_config": {
         "message_type": "1b",

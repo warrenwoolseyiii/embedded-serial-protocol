@@ -1,8 +1,11 @@
 import getopt
 import json
+from socket import timeout
 import sys
+import time
 import serial
 import importlib.util
+
 
 # Send a message through a serial port
 def send_message(ser, msg):
@@ -13,6 +16,18 @@ def send_message(ser, msg):
         print("Error: " + str(e))
         sys.exit(2)
 
+
+# Read from the serial port
+def receive_message(ser, length):
+    try:
+        # Read from the serial port
+        buf = ser.read(length)
+        return buf
+    except Exception as e:
+        print("Error: " + str(e))
+        sys.exit(2)
+
+
 # Helper function to import a module from a file.
 def module_from_file(module_name, file_path):
     spec = importlib.util.spec_from_file_location(module_name, file_path)
@@ -22,9 +37,11 @@ def module_from_file(module_name, file_path):
 
 
 # Open the serial port
-def open_serial_port(port, baud):
+def open_serial_port(port, baud, delay_seconds=0):
     try:
         ser = serial.Serial(port, baud)
+        ser.timeout = 1
+        time.sleep(delay_seconds)
         return ser
     except Exception as e:
         print("Error: " + str(e))
@@ -193,25 +210,48 @@ def main(argv):
     # Load the protocol module
     protocol = module_from_file("protocol",
                                 "protocol-implementation/Python/protocol.py")
+    
+    # Set "my address"
+    protocol.set_my_address(my_address)
 
     # Attempt to open the  serial port
     if verbose:
         print("Opening serial port: " + port + " at baud " + str(baud))
         print("")
-    ser = open_serial_port(port, baud)
+    ser = open_serial_port(port, baud, 10)
 
     if opmode == "message":
         # Build the message
-        msg = protocol.build_message(message_type, target_address, message_payload)
+        msg = protocol.build_message(message_type, target_address,
+                                     message_payload)
         if verbose:
             print("Message: " + str(msg))
             print("")
+
         # Send the message
+        print("Sending message..." + str(msg.to_list()))
         send_message(ser, msg.to_list())
+
+        # Receive the message
+        msg = receive_message(ser, 1024)
+        # Convert the bytes int a list of ints
+        msg = [x for x in msg]
+
+        if verbose:
+            print("Raw bytes received: " + str(msg))
+            print(type(msg))
+
+        # Parse the message
+        protocol.parse_input_buffer(msg)
+        rx_msg = protocol.check_for_parsed_messages()
+        if rx_msg != None:
+            print("Received message: " + str(rx_msg))
+            print("")
 
         # For now close the serial port before exiting
         ser.close()
         sys.exit()
+
 
 # Main caller
 if __name__ == "__main__":

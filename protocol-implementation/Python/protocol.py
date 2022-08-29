@@ -7,6 +7,33 @@ class error_state(Enum):
     ILLEGAL_MESSAGE_LENGTH = 1
 
 
+# Enumeration of the states in the state machine
+class parsing_state(Enum):
+    HEADER_POS0 = 0
+    HEADER_POS1 = 1
+    HEADER_POS2 = 2
+    SRC_ADDR_POS = 3
+    TGT_ADDR_POS = 4
+    MSG_TYPE_POS = 5
+    PAYLOAD_LEN_MSB_POS = 6
+    PAYLOAD_LEN_LSB_POS = 7
+    PAYLOAD_START_POS = 8
+    CRC_POS_1 = 9
+    CRC_POS_2 = 10
+
+
+# Constant values for the protocol
+HEADER_BYTE0 = 0xAA
+HEADER_BYTE1 = 0x55
+HEADER_BYTE2 = 0xFF
+
+# User address, you can change this to whatever you want
+my_addr = 0x01
+
+# Maximum allowable length, you can change this - there is a maximum value of 65535 bytes
+MAX_MSG_LEN = 65535
+
+
 class message:
     error = error_state.NO_ERROR
     msg_type = 0
@@ -33,6 +60,9 @@ class message:
 
     def to_list(self):
         msg_list = []
+        msg_list.append(HEADER_BYTE0)
+        msg_list.append(HEADER_BYTE1)
+        msg_list.append(HEADER_BYTE2)
         msg_list.append(self.msg_type)
         msg_list.append(self.src_addr)
         msg_list.append(self.tgt_addr)
@@ -45,32 +75,6 @@ class message:
         return msg_list
 
 
-# Enumeration of the states in the state machine
-class parsing_state(Enum):
-    HEADER_POS0 = 0
-    HEADER_POS1 = 1
-    HEADER_POS2 = 2
-    SRC_ADDR_POS = 3
-    TGT_ADDR_POS = 4
-    MSG_TYPE_POS = 5
-    PAYLOAD_LEN_MSB_POS = 6
-    PAYLOAD_LEN_LSB_POS = 7
-    PAYLOAD_START_POS = 8
-    CRC_POS_1 = 9
-    CRC_POS_2 = 10
-
-
-# Constant values for the protocol
-HEADER_BYTE0 = 0xAA
-HEADER_BYTE1 = 0x55
-HEADER_BYTE2 = 0xFF
-
-# User address, you can change this to whatever you want
-MY_ADDR = 0x01
-
-# Maximum allowable length, you can change this - there is a maximum value of 65535 bytes
-MAX_MSG_LEN = 65535
-
 # Parsing state global variable
 p_state = parsing_state(0)
 
@@ -80,6 +84,12 @@ current_msg = message(0, 0, 0, 0, [], 0)
 # Global parsed notification and storage
 parsed_message_queue = []
 message_available = False
+
+
+# Set my address
+def set_my_address(addr):
+    global my_addr
+    my_addr = addr
 
 
 # Internal notify of a parsed message
@@ -127,6 +137,8 @@ def reset_parsing_state():
 def parse_byte(byte):
     global p_state
     global current_msg
+    print("parse_byte: " + hex(byte))
+    print("p_state: " + str(p_state))
     # Switch based on the state
     if p_state == parsing_state.HEADER_POS0:
         if byte == HEADER_BYTE0:
@@ -174,8 +186,9 @@ def parse_byte(byte):
     elif p_state == parsing_state.CRC_POS_2:
         current_msg.msg_crc |= byte
         # Check the CRC
+        global my_addr
         if current_msg.msg_crc == calculate_crc(
-                current_msg) and current_msg.tgt_addr == MY_ADDR:
+                current_msg) and current_msg.tgt_addr == my_addr:
             # CRC is good, send the message to the message handler
             notify_parsed_message(current_msg)
             reset_parsing_state()
@@ -218,7 +231,8 @@ def build_message(type, addr, payload):
         raise Exception("Message length too large")
 
     # Create the message
-    msg = message(type, MY_ADDR, addr, len(payload), payload, 0)
+    global my_addr
+    msg = message(type, my_addr, addr, len(payload), payload, 0)
     # Calculate the CRC
     msg.msg_crc = calculate_crc(msg)
     # Return the message
