@@ -7,11 +7,11 @@ from random import randint
 def generate_random_message(length=-1):
     # Make a random message
     m_type = randint(0, 255)
-    t_addr = prot.MY_ADDR
+    t_addr = prot.my_addr
     if length == -1:
         length = randint(0, prot.MAX_MSG_LEN)
     m_payload = [randint(0, 255) for i in range(length)]
-    msg = prot.message(m_type, prot.MY_ADDR, t_addr, len(m_payload), m_payload,
+    msg = prot.message(m_type, prot.my_addr, t_addr, len(m_payload), m_payload,
                        0)
     msg.msg_crc = prot.calculate_crc(msg)
 
@@ -43,7 +43,7 @@ class TestSender(unittest.TestCase):
         # Assert that the message is built properly
         self.assertEqual(m_payload, msg.msg_payload)
         self.assertEqual(m_type, msg.msg_type)
-        self.assertEqual(prot.MY_ADDR, msg.src_addr)
+        self.assertEqual(prot.my_addr, msg.src_addr)
         self.assertEqual(t_addr, msg.tgt_addr)
         self.assertEqual(len(m_payload), msg.msg_len)
 
@@ -60,7 +60,7 @@ class TestSender(unittest.TestCase):
         # Assert that the message is built properly
         self.assertEqual(m_payload, msg.msg_payload)
         self.assertEqual(m_type, msg.msg_type)
-        self.assertEqual(prot.MY_ADDR, msg.src_addr)
+        self.assertEqual(prot.my_addr, msg.src_addr)
         self.assertEqual(t_addr, msg.tgt_addr)
         self.assertEqual(len(m_payload), msg.msg_len)
 
@@ -89,7 +89,7 @@ class TestSender(unittest.TestCase):
         # Assert that the message is built properly
         self.assertEqual([], msg.msg_payload)
         self.assertEqual(m_type, msg.msg_type)
-        self.assertEqual(prot.MY_ADDR, msg.src_addr)
+        self.assertEqual(prot.my_addr, msg.src_addr)
         self.assertEqual(t_addr, msg.tgt_addr)
         self.assertEqual(0, msg.msg_len)
 
@@ -204,7 +204,7 @@ class TestParser(unittest.TestCase):
     # Test the parser function with a message that is not for me
     def test_invalid_msg_not_for_me(self):
         msg = generate_random_message(0)
-        msg[4] = prot.MY_ADDR + 1
+        msg[4] = prot.my_addr + 1
         prot.parse_input_buffer(msg)
 
         # Get the parsed messages
@@ -249,7 +249,7 @@ class TestParser(unittest.TestCase):
     # Test the parser with back to back valid messages, one for me and one not
     def test_valid_msg_back_to_back_not_for_me(self):
         msg = generate_random_message()
-        msg[4] = prot.MY_ADDR + 1
+        msg[4] = prot.my_addr + 1
         prot.parse_input_buffer(msg)
 
         msg1 = generate_random_message()

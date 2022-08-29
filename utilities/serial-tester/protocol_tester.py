@@ -226,29 +226,38 @@ def main(argv):
                                      message_payload)
         if verbose:
             print("Message: " + str(msg))
+            print("Raw message: " + str(msg.to_list()))
             print("")
 
         # Send the message
-        print("Sending message..." + str(msg.to_list()))
         send_message(ser, msg.to_list())
 
         # Receive the message
-        msg = receive_message(ser, 1024)
+        rx_buf = receive_message(ser, 1024)
         # Convert the bytes int a list of ints
-        msg = [x for x in msg]
+        rx_buf = [x for x in rx_buf]
 
         if verbose:
-            print("Raw bytes received: " + str(msg))
-            print(type(msg))
+            print("Raw bytes received: " + str(rx_buf))
 
         # Parse the message
-        protocol.parse_input_buffer(msg)
+        protocol.parse_input_buffer(rx_buf)
         rx_msg = protocol.check_for_parsed_messages()
         if rx_msg != None:
-            print("Received message: " + str(rx_msg))
-            print("")
+            # Print a detailed log of the message
+            if verbose:
+                print("Got " + str(len(rx_msg)) + " messages!")
+                for m in rx_msg:
+                    print("Message: " + str(m))
+            else:
+                print("Sent: " + str(msg))
+                for m in rx_msg:
+                    print("Received: " + str(m))
 
         # For now close the serial port before exiting
+        if verbose:
+            print("Closing serial port")
+            print("")
         ser.close()
         sys.exit()
 

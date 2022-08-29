@@ -63,9 +63,9 @@ class message:
         msg_list.append(HEADER_BYTE0)
         msg_list.append(HEADER_BYTE1)
         msg_list.append(HEADER_BYTE2)
-        msg_list.append(self.msg_type)
         msg_list.append(self.src_addr)
         msg_list.append(self.tgt_addr)
+        msg_list.append(self.msg_type)
         msg_list.append(self.msg_len >> 8 & 0xFF)
         msg_list.append(self.msg_len & 0xFF)
         for i in range(self.msg_len):
@@ -110,7 +110,7 @@ def calculate_crc(msg):
     byte_list.append(msg.src_addr)
     byte_list.append(msg.tgt_addr)
     byte_list.append(msg.msg_type)
-    byte_list.append(msg.msg_len >> 8)
+    byte_list.append(msg.msg_len >> 8 & 0xFF)
     byte_list.append(msg.msg_len & 0xFF)
     for i in range(msg.msg_len):
         byte_list.append(msg.msg_payload[i])
@@ -137,8 +137,6 @@ def reset_parsing_state():
 def parse_byte(byte):
     global p_state
     global current_msg
-    print("parse_byte: " + hex(byte))
-    print("p_state: " + str(p_state))
     # Switch based on the state
     if p_state == parsing_state.HEADER_POS0:
         if byte == HEADER_BYTE0:
@@ -181,10 +179,10 @@ def parse_byte(byte):
         if len(current_msg.msg_payload) == current_msg.msg_len:
             p_state = parsing_state.CRC_POS_1
     elif p_state == parsing_state.CRC_POS_1:
-        current_msg.msg_crc = byte << 8
+        current_msg.msg_crc = (byte & 0xFF) << 8
         p_state = parsing_state.CRC_POS_2
     elif p_state == parsing_state.CRC_POS_2:
-        current_msg.msg_crc |= byte
+        current_msg.msg_crc |= (byte & 0xFF)
         # Check the CRC
         global my_addr
         if current_msg.msg_crc == calculate_crc(
