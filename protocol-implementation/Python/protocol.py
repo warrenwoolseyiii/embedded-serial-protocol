@@ -25,11 +25,24 @@ class message:
         self.msg_len = msg_len
         self.msg_payload = msg_payload
         self.msg_crc = msg_crc
-        
+
     def __str__(self):
         return "msg_type: {}, src_addr: {}, tgt_addr: {}, msg_len: {}, msg_payload: {}, msg_crc: {}, error: {}".format(
             hex(self.msg_type), hex(self.src_addr), hex(self.tgt_addr),
             hex(self.msg_len), self.msg_payload, hex(self.msg_crc), self.error)
+
+    def to_list(self):
+        msg_list = []
+        msg_list.append(self.msg_type)
+        msg_list.append(self.src_addr)
+        msg_list.append(self.tgt_addr)
+        msg_list.append(self.msg_len >> 8 & 0xFF)
+        msg_list.append(self.msg_len & 0xFF)
+        for i in range(self.msg_len):
+            msg_list.append(self.msg_payload[i])
+        msg_list.append(self.msg_crc >> 8 & 0xFF)
+        msg_list.append(self.msg_crc & 0xFF)
+        return msg_list
 
 
 # Enumeration of the states in the state machine

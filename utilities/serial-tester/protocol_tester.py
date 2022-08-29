@@ -2,6 +2,24 @@ import getopt
 import json
 import sys
 import serial
+import importlib.util
+
+# Send a message through a serial port
+def send_message(ser, msg):
+    try:
+        # Send the message
+        ser.write(msg)
+    except Exception as e:
+        print("Error: " + str(e))
+        sys.exit(2)
+
+# Helper function to import a module from a file.
+def module_from_file(module_name, file_path):
+    spec = importlib.util.spec_from_file_location(module_name, file_path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
 
 # Open the serial port
 def open_serial_port(port, baud):
@@ -11,6 +29,7 @@ def open_serial_port(port, baud):
     except Exception as e:
         print("Error: " + str(e))
         sys.exit(2)
+
 
 # Parse the objects from the configuration file
 def get_config_field(config, key):
@@ -64,7 +83,8 @@ def main(argv):
     short_options = "hc:p:b:t:m:p:a:v:o"
     long_options = [
         "help", "config_file=", "port=", "baud=", "target_address=",
-        "message_type=", "message_payload=", "my_address=", "verbose", "opmode="
+        "message_type=", "message_payload=", "my_address=", "verbose",
+        "opmode="
     ]
     try:
         opts, args = getopt.getopt(argv, short_options, long_options)
@@ -136,17 +156,24 @@ def main(argv):
 
         # Load the tester configuration options
         if tester_config != None:
-            target_address = get_config_field(tester_config, "target_address")
-            my_address = get_config_field(tester_config, "my_address")
+            # Convert the hex strings to ints
+            target_address = int(
+                get_config_field(tester_config, "target_address"), 16)
+            my_address = int(get_config_field(tester_config, "my_address"), 16)
             if verbose:
                 print("Overriding target address: " + str(target_address))
                 print("Overriding my address: " + str(my_address))
 
         # Load the message configuration options
         if message_config != None:
-            message_type = get_config_field(message_config, "message_type")
-            message_payload = get_config_field(message_config,
-                                               "message_payload")
+            # Convert the hex strings to ints
+            message_type = int(
+                get_config_field(message_config, "message_type"), 16)
+            # Convert the payload from a hex string to a list of ints
+            message_payload = [
+                int(x, 16)
+                for x in get_config_field(message_config, "message_payload")
+            ]
             if verbose:
                 print("Overriding message type: " + str(message_type))
                 print("Overriding message payload: " + str(message_payload))
@@ -158,15 +185,33 @@ def main(argv):
             if verbose:
                 print("Overriding port: " + str(port))
                 print("Overriding baud: " + str(baud))
-        
+
         # Give an extra space if we are verbose
         if verbose:
             print("")
 
+    # Load the protocol module
+    protocol = module_from_file("protocol",
+                                "protocol-implementation/Python/protocol.py")
+
     # Attempt to open the  serial port
     if verbose:
         print("Opening serial port: " + port + " at baud " + str(baud))
+        print("")
     ser = open_serial_port(port, baud)
+
+    if opmode == "message":
+        # Build the message
+        msg = protocol.build_message(message_type, target_address, message_payload)
+        if verbose:
+            print("Message: " + str(msg))
+            print("")
+        # Send the message
+        send_message(ser, msg.to_list())
+
+        # For now close the serial port before exiting
+        ser.close()
+        sys.exit()
 
 # Main caller
 if __name__ == "__main__":
