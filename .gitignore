@@ -3,3 +3,6 @@ protocol-implementation/C/test/build
 
 # Python linking directory
 protocol-implementation/Python/__pycache__
+
+# Example build directory
+examples/Arduino/sketches/basic_example/build/

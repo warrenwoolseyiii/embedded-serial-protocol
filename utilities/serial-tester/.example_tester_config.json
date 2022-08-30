@@ -4,49 +4,64 @@
         "baud": 9600
     },
     "tester_config": {
-        "my_address": "ab",
-        "target_address": "ab"
+        "my_address": "0x01",
+        "target_address": "0x1a"
     },
     "message_config": {
-        "message_type": "1b",
-        "message_payload": [
-            "0x0",
-            "0x1",
-            "0x2",
-            "0x3",
-            "0x4",
-            "0x5",
-            "0x6",
-            "0x7",
-            "0x8",
-            "0x9",
-            "0xa",
-            "0xb",
-            "0xc",
-            "0xd",
-            "0xe",
-            "0xf"
-        ]
+        "message_type": "0x0",
+        "message_payload": []
     },
     "expected_rsp_config": {
-        "message_type": "1b",
+        "message_type": "0x00",
         "message_payload": [
-            "0x0",
-            "0x1",
-            "0x2",
-            "0x3",
-            "0x4",
-            "0x5",
-            "0x6",
-            "0x7",
-            "0x8",
-            "0x9",
-            "0xa",
-            "0xb",
-            "0xc",
-            "0xd",
-            "0xe",
-            "0xf"
+            "0x00",
+            "0x01"
+        ]
+    },
+    "command_response_config": {
+        "command_response_pairs": [
+            {
+                "command_type": "0x00",
+                "response_type": "0x00",
+                "command_payload": [],
+                "response_payload": [
+                    "0x00",
+                    "0x01"
+                ]
+            },
+            {
+                "command_type": "0x01",
+                "response_type": "0x01",
+                "command_payload": [],
+                "response_payload": []
+            },
+            {
+                "command_type": "0x02",
+                "response_type": "0x02",
+                "command_payload": [
+                    "0x45"
+                ],
+                "response_payload": []
+            },
+            {
+                "command_type": "0x03",
+                "response_type": "0x03",
+                "command_payload": [],
+                "response_payload": [
+                    "0x45"
+                ]
+            },
+            {
+                "command_type": "0x04",
+                "response_type": "0x04",
+                "command_payload": [],
+                "response_payload": [
+                    "0x01",
+                    "0x01",
+                    "0x01",
+                    "0x01"
+                ]
+            }
         ]
     }
 }
