@@ -310,9 +310,10 @@ void setup()
 void loop()
 {
     int avail = Serial.available();
-    if (avail) {
+    if (avail)
+    {
         uint8_t input_buffer[16];
-        Serial.readBytes(input_buffer, ( avail > 16 ? 16 : avail ));
+        Serial.readBytes(input_buffer, (avail > 16 ? 16 : avail));
         parse_input_buffer(input_buffer, avail);
     }
 }
