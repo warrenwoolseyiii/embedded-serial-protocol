@@ -416,7 +416,6 @@ def main(argv):
                         print("Raw message: " + str(m.to_list()))
                         print("")
 
-
 # Main caller
 if __name__ == "__main__":
     main(sys.argv[1:])

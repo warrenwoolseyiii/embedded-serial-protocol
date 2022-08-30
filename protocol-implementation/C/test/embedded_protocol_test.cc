@@ -290,7 +290,7 @@ TEST_F(MessageParsing, Back_To_Back_Messages)
   // use the helper function to make a message with random length
   uint32_t len = MessageParsing::MakeRandomMessage();
   uint8_t *message = get_user_tx_buff_ptr();
-  
+
   // Parse the message
   parse_input_buffer(message, len);
   ASSERT_TRUE(get_user_rx_notify());
@@ -320,7 +320,7 @@ TEST_F(MessageParsing, Back_To_Back_Messages_Not_For_Me)
 
   // Make another message
   uint32_t len2 = MessageParsing::MakeRandomMessage();
-  
+
   // Parse the message
   parse_input_buffer(message, len2);
   ASSERT_TRUE(get_user_rx_notify());
