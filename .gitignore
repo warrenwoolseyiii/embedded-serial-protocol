@@ -5,4 +5,4 @@ protocol-implementation/C/test/build
 protocol-implementation/Python/__pycache__
 
 # Example build directory
-protocol-implementation/examples/Arduino/sketches/basic_example/build
+examples/Arduino/sketches/basic_example/build/
