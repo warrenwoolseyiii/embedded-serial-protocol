@@ -7,8 +7,6 @@ import serial
 import importlib.util
 
 # Compare a message against an expected message
-
-
 def compare_message(msg, expected_msg):
     if msg.msg_type != expected_msg.msg_type:
         print("Error: Message type mismatch. Expected: {}, Actual: {}".format(
@@ -37,8 +35,6 @@ def compare_message(msg, expected_msg):
     return True
 
 # Send a message through a serial port
-
-
 def send_message(ser, msg):
     try:
         # Send the message
@@ -213,6 +209,7 @@ def main(argv):
         message_config = get_config_field(config, "message_config")
         serial_config = get_config_field(config, "serial_config")
         expected_rsp_config = get_config_field(config, "expected_rsp_config")
+        command_response_config = get_config_field(config, "command_response_config")
 
         # Load the tester configuration options
         if tester_config != None:
@@ -282,6 +279,10 @@ def main(argv):
     ser = open_serial_port(port, baud, 10)
 
     if opmode == "message":
+        if verbose:
+            print("Single message & respsone mode")
+            print("")
+
         # Build the message
         msg = protocol.build_message(message_type, target_address,
                                      message_payload)
@@ -333,6 +334,87 @@ def main(argv):
             print("")
         ser.close()
         sys.exit()
+    elif opmode == "cmd_rsp":
+        if verbose:
+            print("Command response mode")
+            print("")
+
+        # Build a list of messages and expected responses from the command_response_config object
+        messages = []
+        expected_responses = []
+        command_response_pairs = get_config_field(command_response_config, "command_response_pairs")
+        for cmd in command_response_pairs:
+            # Convert the hex strings to ints
+            command_type = int(get_config_field(cmd, "command_type"), 16)
+            response_type = int(get_config_field(cmd, "response_type"), 16)
+            # Convert the payload from a hex string to a list of ints
+            command_payload = [
+                int(x, 16)
+                for x in get_config_field(cmd, "command_payload")
+            ]
+            response_payload = [
+                int(x, 16)
+                for x in get_config_field(cmd, "response_payload")
+            ]
+            if verbose:
+                print("Overriding command type: " + str(command_type))
+                print("Overriding command payload: " + str(command_payload))
+                print("Overriding response type: " + str(response_type))
+                print("Overriding response payload: " + str(response_payload))
+                print("")
+
+            # Build the message
+            msg = protocol.build_message(command_type, target_address,
+                                         command_payload)
+            if verbose:
+                print("Command: " + str(msg))
+                print("Raw command: " + str(msg.to_list()))
+                print("")
+
+            # Build the expected response message
+            exp_rsp_msg = protocol.build_message(
+                response_type, protocol.my_addr, response_payload)
+            exp_rsp_msg.src_addr = target_address
+            exp_rsp_msg.msg_crc = protocol.calculate_crc(exp_rsp_msg)
+            if verbose:
+                print("Expected response message: " + str(exp_rsp_msg))
+                print("Raw expected response message: " +
+                      str(exp_rsp_msg.to_list()))
+                print("")
+            messages.append(msg)
+            expected_responses.append(exp_rsp_msg)
+
+        # Loop through the messages and get the expected responses
+        for i in range(len(messages)):
+            # Send the message
+            if verbose:
+                print("Sending message: " + str(messages[i]))
+                print("Raw message: " + str(messages[i].to_list()))
+            send_message(ser, messages[i].to_list())
+
+            # Receive the message
+            rx_buf = receive_message(ser, 1024)
+            # Convert the bytes int a list of ints
+            rx_buf = [x for x in rx_buf]
+
+            if verbose:
+                print("Raw bytes received: " + str(rx_buf))
+
+            # Parse the message
+            protocol.parse_input_buffer(rx_buf)
+            rx_msg = protocol.check_for_parsed_messages()
+            if rx_msg != None:
+                if verbose:
+                    print("Got " + str(len(rx_msg)) + " messages")
+
+                # Loop through the messages and see if we got the expected response message
+                for m in rx_msg:
+                    if compare_message(m, expected_responses[i]):
+                        print("Got expected response message!")
+                        print("Message: " + str(m))
+                    if verbose:
+                        print("Raw message: " + str(m.to_list()))
+                        print("")
 
 
 # Main caller
