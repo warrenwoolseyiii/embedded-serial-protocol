@@ -6,6 +6,33 @@ import time
 import serial
 import importlib.util
 
+# Compare a message against an expected message
+def compare_message(msg, expected_msg):
+    if msg.msg_type != expected_msg.msg_type:
+        print("Error: Message type mismatch. Expected: {}, Actual: {}".format(
+            hex(expected_msg.msg_type), hex(msg.msg_type)))
+        return False
+    if msg.src_addr != expected_msg.src_addr:
+        print("Error: Source address mismatch. Expected: {}, Actual: {}".format(
+            hex(expected_msg.src_addr), hex(msg.src_addr)))
+        return False
+    if msg.tgt_addr != expected_msg.tgt_addr:
+        print("Error: Target address mismatch. Expected: {}, Actual: {}".format(
+            hex(expected_msg.tgt_addr), hex(msg.tgt_addr)))
+        return False
+    if msg.msg_len != expected_msg.msg_len:
+        print("Error: Message length mismatch. Expected: {}, Actual: {}".format(
+            hex(expected_msg.msg_len), hex(msg.msg_len)))
+        return False
+    if msg.msg_payload != expected_msg.msg_payload:
+        print("Error: Message payload mismatch. Expected: {}, Actual: {}".format(
+            expected_msg.msg_payload, msg.msg_payload))
+        return False
+    if msg.msg_crc != expected_msg.msg_crc:
+        print("Error: Message CRC mismatch. Expected: {}, Actual: {}".format(
+            hex(expected_msg.msg_crc), hex(msg.msg_crc)))
+        return False
+    return True
 
 # Send a message through a serial port
 def send_message(ser, msg):
@@ -86,6 +113,8 @@ def print_usage():
     print("-a, --my_address: The my address to use.")
     print("-v, --verbose: Print verbose output.")
     print("-o, --opmode: The opmode to use.")
+    print("-e", "--response_type: The expected response message type.")
+    print("-r", "--response_payload: The expected response message payload.")
 
 
 # Main function for the protocol tester.
@@ -97,11 +126,11 @@ def main(argv):
         sys.exit(2)
 
     # Argument list
-    short_options = "hc:p:b:t:m:p:a:v:o"
+    short_options = "hc:p:b:t:m:p:a:v:o:e:r"
     long_options = [
         "help", "config_file=", "port=", "baud=", "target_address=",
         "message_type=", "message_payload=", "my_address=", "verbose",
-        "opmode="
+        "opmode=", "response_type=", "response_payload="
     ]
     try:
         opts, args = getopt.getopt(argv, short_options, long_options)
@@ -121,6 +150,8 @@ def main(argv):
     my_address = -1
     verbose = False
     opmode = "message"
+    exp_rsp_message_type = -1
+    exp_rsp_message_payload = []
 
     # Configure the arguments
     for opt, arg in opts:
@@ -145,6 +176,10 @@ def main(argv):
             verbose = True
         elif opt in ("-o", "--opmode"):
             opmode = arg
+        elif opt in ("-e", "--response_type"):
+            exp_rsp_message_type = arg
+        elif opt in ("-r", "--response_payload"):
+            exp_rsp_message_payload = arg
 
     # Print the arguments if verbose is enabled
     if verbose:
@@ -158,6 +193,8 @@ def main(argv):
         print("My address: " + str(my_address))
         print("Verbose: " + str(verbose))
         print("Opmode: " + opmode)
+        print("Expected response message type: " + str(exp_rsp_message_type))
+        print("Expected response message payload: " + str(exp_rsp_message_payload))
         print("")
 
     # Parse the configuration file if it is specified
@@ -170,6 +207,7 @@ def main(argv):
         tester_config = get_config_field(config, "tester_config")
         message_config = get_config_field(config, "message_config")
         serial_config = get_config_field(config, "serial_config")
+        expected_rsp_config = get_config_field(config, "expected_rsp_config")
 
         # Load the tester configuration options
         if tester_config != None:
@@ -203,6 +241,20 @@ def main(argv):
                 print("Overriding port: " + str(port))
                 print("Overriding baud: " + str(baud))
 
+        # Load the expected response configuration options
+        if expected_rsp_config != None:
+            # Convert the hex strings to ints
+            exp_rsp_message_type = int(
+                get_config_field(expected_rsp_config, "message_type"), 16)
+            # Convert the payload from a hex string to a list of ints
+            exp_rsp_message_payload = [
+                int(x, 16)
+                for x in get_config_field(expected_rsp_config, "message_payload")
+            ]
+            if verbose:
+                print("Overriding expected response message type: " + str(exp_rsp_message_type))
+                print("Overriding expected response message payload: " + str(exp_rsp_message_payload))
+
         # Give an extra space if we are verbose
         if verbose:
             print("")
@@ -212,6 +264,8 @@ def main(argv):
                                 "protocol-implementation/Python/protocol.py")
     
     # Set "my address"
+    if verbose:
+        print("Setting my address: " + str(my_address))
     protocol.set_my_address(my_address)
 
     # Attempt to open the  serial port
@@ -229,6 +283,13 @@ def main(argv):
             print("Raw message: " + str(msg.to_list()))
             print("")
 
+        # Build the expected response message
+        exp_rsp_msg = protocol.build_message(exp_rsp_message_type, my_address,exp_rsp_message_payload)
+        if verbose:
+            print("Expected response message: " + str(exp_rsp_msg))
+            print("Raw expected response message: " + str(exp_rsp_msg.to_list()))
+            print("")
+
         # Send the message
         send_message(ser, msg.to_list())
 
@@ -244,15 +305,18 @@ def main(argv):
         protocol.parse_input_buffer(rx_buf)
         rx_msg = protocol.check_for_parsed_messages()
         if rx_msg != None:
-            # Print a detailed log of the message
             if verbose:
-                print("Got " + str(len(rx_msg)) + " messages!")
-                for m in rx_msg:
-                    print("Message: " + str(m))
-            else:
-                print("Sent: " + str(msg))
-                for m in rx_msg:
-                    print("Received: " + str(m))
+                print("Got " + str(len(rx_msg)) + " messages")
+            
+            # Loop through the messages and see if we got the expected response message
+            for msg in rx_msg:
+                if verbose:
+                    print("Message: " + str(msg))
+                    print("Raw message: " + str(msg.to_list()))
+                    print("")
+                if compare_message(msg, exp_rsp_msg):
+                    print("Got expected response message!")
+                    break
 
         # For now close the serial port before exiting
         if verbose:
