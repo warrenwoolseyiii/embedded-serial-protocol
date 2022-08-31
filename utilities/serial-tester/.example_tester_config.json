@@ -5,7 +5,8 @@
     },
     "tester_config": {
         "my_address": "0x01",
-        "target_address": "0x1a"
+        "target_address": "0x1a",
+        "broadcast_address": "0xFF"
     },
     "message_config": {
         "message_type": "0x0",
@@ -15,7 +16,7 @@
         "message_type": "0x00",
         "message_payload": [
             "0x00",
-            "0x01"
+            "0x02"
         ]
     },
     "command_response_config": {
@@ -26,7 +27,7 @@
                 "command_payload": [],
                 "response_payload": [
                     "0x00",
-                    "0x01"
+                    "0x02"
                 ]
             },
             {
@@ -61,6 +62,12 @@
                     "0x01",
                     "0x01"
                 ]
+            },
+            {
+                "command_type": "0x05",
+                "response_type": "0x01",
+                "command_payload": [],
+                "response_payload": []
             }
         ]
     }

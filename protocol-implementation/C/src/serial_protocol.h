@@ -52,21 +52,16 @@ extern "C"
 #define NUM_OVER_HEAD_BYTES 10
 #define RX_BUFFER_LEN ((MAX_PAYLOAD_LEN + NUM_OVER_HEAD_BYTES) * 2)
 
-// Device address - you need to override this in your implementation.
-#define MY_ADDR 0x00
-
-// If this device is the host on the bus this is where you can implement periphal functionality.
-//#define PERIPHERAL_ADDR_0 0x01
-//#define PERIPHERAL_ADDR_1 0x02
-
 // Protocol version
-#define PROTOCOL_VERSION 0x0001
+#define PROTOCOL_VERSION 0x0002
 
 // Error codes
 #define SP_OK 0
 #define SP_ERR_ILLEGAL_MSG_LEN -1
 #define SP_ERR_NULL_PAYLOAD -2
 
+    void set_my_addr(uint8_t addr);
+    void set_broadcast_addr(uint8_t addr);
     void parse_input_buffer(uint8_t *input_buffer, uint32_t max_length);
     int send_message(uint8_t dest_addr, uint8_t type, uint8_t *payload, uint32_t payload_length);
 

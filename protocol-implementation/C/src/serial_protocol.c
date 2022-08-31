@@ -5,6 +5,8 @@
 uint32_t _parsing_index = 0;
 uint32_t _current_message_len = 0;
 uint8_t _current_message[RX_BUFFER_LEN];
+uint8_t _my_addr = 0;
+uint8_t _broadcast_addr = 0xFF;
 
 void _queue_byte(uint8_t byte)
 {
@@ -60,7 +62,7 @@ void _parse_input(uint8_t input)
 
                 // If the CRC is valid, and the message is meant for us, recieve the message!
                 uint8_t tgt_addr = _current_message[TGT_ADDR_POS];
-                if (crc == calculated_crc && tgt_addr == MY_ADDR)
+                if (crc == calculated_crc && (tgt_addr == _my_addr || tgt_addr == _broadcast_addr))
                 {
                     user_rcv_message(_current_message, total_len);
                     _reset_parsing_state();
@@ -113,6 +115,16 @@ void _parse_input(uint8_t input)
     }
 }
 
+void set_my_addr(uint8_t addr)
+{
+    _my_addr = addr;
+}
+
+void set_broadcast_addr(uint8_t addr)
+{
+    _broadcast_addr = addr;
+}
+
 void parse_input_buffer(uint8_t *input_buffer, uint32_t max_length)
 {
     for (uint32_t i = 0; i < max_length; i++)
@@ -131,7 +143,7 @@ int send_message(uint8_t dest_addr, uint8_t type, uint8_t *payload, uint32_t pay
     tx_buff[HEADER_0_POS] = HEADER_0_VAL;
     tx_buff[HEADER_1_POS] = HEADER_1_VAL;
     tx_buff[HEADER_2_POS] = HEADER_2_VAL;
-    tx_buff[SRC_ADDR_POS] = MY_ADDR;
+    tx_buff[SRC_ADDR_POS] = _my_addr;
     tx_buff[TGT_ADDR_POS] = dest_addr;
     tx_buff[MSG_TYPE_POS] = type;
     tx_buff[PAYLOAD_LEN_MSB_POS] = (uint8_t)((payload_length >> 8) & 0xFF);

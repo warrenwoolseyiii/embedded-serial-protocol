@@ -7,6 +7,8 @@ import serial
 import importlib.util
 
 # Compare a message against an expected message
+
+
 def compare_message(msg, expected_msg):
     if msg.msg_type != expected_msg.msg_type:
         print("Error: Message type mismatch. Expected: {}, Actual: {}".format(
@@ -35,6 +37,8 @@ def compare_message(msg, expected_msg):
     return True
 
 # Send a message through a serial port
+
+
 def send_message(ser, msg):
     try:
         # Send the message
@@ -115,6 +119,7 @@ def print_usage():
     print("-o, --opmode: The opmode to use.")
     print("-e", "--response_type: The expected response message type.")
     print("-r", "--response_payload: The expected response message payload.")
+    print("-d", "--broadcast: place the tester in broadcast mode.")
 
 
 # Main function for the protocol tester.
@@ -126,11 +131,11 @@ def main(argv):
         sys.exit(2)
 
     # Argument list
-    short_options = "hc:p:b:t:m:p:a:v:o:e:r"
+    short_options = "hc:p:b:t:m:p:a:v:o:e:r:d"
     long_options = [
         "help", "config_file=", "port=", "baud=", "target_address=",
         "message_type=", "message_payload=", "my_address=", "verbose",
-        "opmode=", "response_type=", "response_payload="
+        "opmode=", "response_type=", "response_payload=", "broadcast"
     ]
     try:
         opts, args = getopt.getopt(argv, short_options, long_options)
@@ -152,6 +157,8 @@ def main(argv):
     opmode = "message"
     exp_rsp_message_type = -1
     exp_rsp_message_payload = []
+    broadcast_address = -1
+    broadcast_mode = False
 
     # Configure the arguments
     for opt, arg in opts:
@@ -180,6 +187,8 @@ def main(argv):
             exp_rsp_message_type = arg
         elif opt in ("-r", "--response_payload"):
             exp_rsp_message_payload = arg
+        elif opt in ("-d", "--broadcast"):
+            broadcast_mode = True
 
     # Print the arguments if verbose is enabled
     if verbose:
@@ -209,7 +218,8 @@ def main(argv):
         message_config = get_config_field(config, "message_config")
         serial_config = get_config_field(config, "serial_config")
         expected_rsp_config = get_config_field(config, "expected_rsp_config")
-        command_response_config = get_config_field(config, "command_response_config")
+        command_response_config = get_config_field(
+            config, "command_response_config")
 
         # Load the tester configuration options
         if tester_config != None:
@@ -217,9 +227,12 @@ def main(argv):
             target_address = int(
                 get_config_field(tester_config, "target_address"), 16)
             my_address = int(get_config_field(tester_config, "my_address"), 16)
+            broadcast_address = int(get_config_field(
+                tester_config, "broadcast_address"), 16)
             if verbose:
                 print("Overriding target address: " + str(target_address))
                 print("Overriding my address: " + str(my_address))
+                print("Overriding broadcast address: " + str(broadcast_address))
 
         # Load the message configuration options
         if message_config != None:
@@ -284,8 +297,12 @@ def main(argv):
             print("")
 
         # Build the message
-        msg = protocol.build_message(message_type, target_address,
-                                     message_payload)
+        if broadcast_mode:
+            msg = protocol.build_message(
+                message_type, broadcast_address, message_payload)
+        else:
+            msg = protocol.build_message(message_type, target_address,
+                                         message_payload)
         if verbose:
             print("Message: " + str(msg))
             print("Raw message: " + str(msg.to_list()))
@@ -342,7 +359,8 @@ def main(argv):
         # Build a list of messages and expected responses from the command_response_config object
         messages = []
         expected_responses = []
-        command_response_pairs = get_config_field(command_response_config, "command_response_pairs")
+        command_response_pairs = get_config_field(
+            command_response_config, "command_response_pairs")
         for cmd in command_response_pairs:
             # Convert the hex strings to ints
             command_type = int(get_config_field(cmd, "command_type"), 16)
@@ -364,8 +382,13 @@ def main(argv):
                 print("")
 
             # Build the message
-            msg = protocol.build_message(command_type, target_address,
-                                         command_payload)
+            if broadcast_mode:
+                msg = protocol.build_message(
+                    command_type, broadcast_address, command_payload)
+            else:
+                msg = protocol.build_message(command_type, target_address,
+                                             command_payload)
+
             if verbose:
                 print("Command: " + str(msg))
                 print("Raw command: " + str(msg.to_list()))
@@ -415,6 +438,7 @@ def main(argv):
                     if verbose:
                         print("Raw message: " + str(m.to_list()))
                         print("")
+
 
 # Main caller
 if __name__ == "__main__":
