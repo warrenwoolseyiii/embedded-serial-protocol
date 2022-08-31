@@ -3,6 +3,9 @@
 #include "unit_test_glue.h"
 #include "../src/user_impl.h"
 
+#define MY_ADDR 0xAE
+#define BROAD_CAST_ADDR 0xFF
+
 class MessageBuilding : public ::testing::Test
 {
 public:
@@ -13,6 +16,8 @@ public:
 
   void SetUp()
   {
+    set_my_addr(MY_ADDR);
+    set_broadcast_addr(BROAD_CAST_ADDR);
     clear_user_tx_notify();
   }
 
@@ -131,15 +136,17 @@ public:
   }
   void SetUp()
   {
+    set_my_addr(MY_ADDR);
+    set_broadcast_addr(BROAD_CAST_ADDR);
     clear_user_rx_notify();
   }
   void TearDown()
   {
     clear_user_rx_notify();
   }
-  uint32_t MakeRandomMessage(int optional_len = -1)
+  uint32_t MakeRandomMessage(int optional_len = -1, int optional_tgt_addr = MY_ADDR)
   {
-    uint8_t test_addr = MY_ADDR;
+    uint8_t test_addr = (uint8_t)optional_tgt_addr;
     uint8_t test_type = (rand() % 255) + 1;
     uint16_t test_payload_len = (rand() % MAX_PAYLOAD_LEN);
 
@@ -310,9 +317,8 @@ TEST_F(MessageParsing, Back_To_Back_Messages)
 TEST_F(MessageParsing, Back_To_Back_Messages_Not_For_Me)
 {
   // use the helper function to make a message with random length
-  uint32_t len = MessageParsing::MakeRandomMessage();
+  uint32_t len = MessageParsing::MakeRandomMessage(rand() % MAX_PAYLOAD_LEN, MY_ADDR + 1);
   uint8_t *message = get_user_tx_buff_ptr();
-  message[TGT_ADDR_POS] = MY_ADDR + 1;
 
   // Parse the message
   parse_input_buffer(message, len);
@@ -326,4 +332,17 @@ TEST_F(MessageParsing, Back_To_Back_Messages_Not_For_Me)
   ASSERT_TRUE(get_user_rx_notify());
   uint8_t *parsed = get_user_rx_buff_ptr();
   ASSERT_EQ(memcmp(message, parsed, len2), 0);
+}
+
+TEST_F(MessageParsing, Valid_Broadcast_Message)
+{
+  // use the helper function to make a message with random length
+  uint32_t len = MessageParsing::MakeRandomMessage(rand() % MAX_PAYLOAD_LEN, BROAD_CAST_ADDR);
+  uint8_t *message = get_user_tx_buff_ptr();
+
+  // Parse the message
+  parse_input_buffer(message, len);
+  ASSERT_TRUE(get_user_rx_notify());
+  uint8_t *parsed = get_user_rx_buff_ptr();
+  ASSERT_EQ(memcmp(message, parsed, len), 0);
 }

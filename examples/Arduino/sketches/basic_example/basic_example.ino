@@ -46,15 +46,8 @@
 #define NUM_OVER_HEAD_BYTES 10
 #define RX_BUFFER_LEN ((MAX_PAYLOAD_LEN + NUM_OVER_HEAD_BYTES) * 2)
 
-// Device address - you need to override this in your implementation.
-#define MY_ADDR 0x1A
-
-// If this device is the host on the bus this is where you can implement periphal functionality.
-#define HOST_ADDR 0x01
-//#define PERIPHERAL_ADDR_1 0x02
-
 // Protocol version
-#define PROTOCOL_VERSION 0x0001
+#define PROTOCOL_VERSION 0x0002
 
 // Error codes
 #define SP_OK 0
@@ -64,10 +57,8 @@
 uint32_t _parsing_index = 0;
 uint32_t _current_message_len = 0;
 uint8_t _current_message[RX_BUFFER_LEN];
-
-// User functions defined below
-void user_rcv_message(uint8_t *msg_buf, uint32_t msg_len);
-void user_serial_tx(uint8_t *msg_buf, uint32_t msg_len);
+uint8_t _my_addr = 0;
+uint8_t _broadcast_addr = 0xFF;
 
 void _queue_byte(uint8_t byte)
 {
@@ -123,7 +114,7 @@ void _parse_input(uint8_t input)
 
                 // If the CRC is valid, and the message is meant for us, recieve the message!
                 uint8_t tgt_addr = _current_message[TGT_ADDR_POS];
-                if (crc == calculated_crc && tgt_addr == MY_ADDR)
+                if (crc == calculated_crc && (tgt_addr == _my_addr || tgt_addr == _broadcast_addr))
                 {
                     user_rcv_message(_current_message, total_len);
                     _reset_parsing_state();
@@ -176,6 +167,16 @@ void _parse_input(uint8_t input)
     }
 }
 
+void set_my_addr(uint8_t addr)
+{
+    _my_addr = addr;
+}
+
+void set_broadcast_addr(uint8_t addr)
+{
+    _broadcast_addr = addr;
+}
+
 void parse_input_buffer(uint8_t *input_buffer, uint32_t max_length)
 {
     for (uint32_t i = 0; i < max_length; i++)
@@ -194,7 +195,7 @@ int send_message(uint8_t dest_addr, uint8_t type, uint8_t *payload, uint32_t pay
     tx_buff[HEADER_0_POS] = HEADER_0_VAL;
     tx_buff[HEADER_1_POS] = HEADER_1_VAL;
     tx_buff[HEADER_2_POS] = HEADER_2_VAL;
-    tx_buff[SRC_ADDR_POS] = MY_ADDR;
+    tx_buff[SRC_ADDR_POS] = _my_addr;
     tx_buff[TGT_ADDR_POS] = dest_addr;
     tx_buff[MSG_TYPE_POS] = type;
     tx_buff[PAYLOAD_LEN_MSB_POS] = (uint8_t)((payload_length >> 8) & 0xFF);
@@ -217,6 +218,9 @@ int send_message(uint8_t dest_addr, uint8_t type, uint8_t *payload, uint32_t pay
 }
 /********** END PROTOCOL IMPLEMENTATION **********/
 
+#define HOST_ADDR 0x01
+#define MY_ADDR 0x1A
+
 // Enumerate all incoming message types from the host
 typedef enum
 {
@@ -225,6 +229,7 @@ typedef enum
     msg_set_value_0 = 2,
     msg_get_value_0 = 3,
     msg_poll_for_data_req = 4,
+    msg_braodcast = 5
 } host_msg_type_t;
 
 // Enumerate all outgoing message types to the host
@@ -291,6 +296,11 @@ void user_rcv_message(uint8_t *msg_buf, uint32_t msg_len)
             }
         }
         break;
+        case msg_braodcast:
+        {
+            send_message(HOST_ADDR, msg_ping_resp, NULL, 0);
+        }
+        break;
         default:
             send_message(HOST_ADDR, msg_nack, NULL, 0);
         }
@@ -305,6 +315,7 @@ void user_serial_tx(uint8_t *msg_buf, uint32_t msg_len)
 void setup()
 {
     Serial.begin(9600);
+    set_my_addr(MY_ADDR);
 }
 
 void loop()
@@ -316,4 +327,8 @@ void loop()
         Serial.readBytes(input_buffer, (avail > 16 ? 16 : avail));
         parse_input_buffer(input_buffer, avail);
     }
+    async_event_1_pending = 1;
+    async_event_2_pending = 1;
+    async_event_3_pending = 1;
+    alarm_1_pending = 1;
 }
