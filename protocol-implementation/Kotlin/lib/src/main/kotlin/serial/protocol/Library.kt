@@ -82,6 +82,18 @@ class Library {
             }
             return crc
         }
+
+        // Print the msg fields
+        fun printMsg() {
+            println("srcAddress: $srcAddress")
+            println("tgtAddress: $tgtAddress")
+            println("msgType: $msgType")
+            println("payloadLength: $payloadLength")
+            for (i in 0 until payloadLength) {
+                println("payload[$i]: ${payload[i]}")
+            }
+            println("crc: $crc")
+        }
     }
 
     // Public address fields
@@ -181,11 +193,12 @@ class Library {
                     state = 10
                 }
                 10 -> {
-                    currentCrc = (currentCrc.toInt() or byteArray[i].toInt()).toShort()
-                    state = 0
+                    currentCrc = (currentCrc.toInt() or (byteArray[i].toInt() and 0xFF)).toShort()
                     val msg = Message(currentSrcAddr, currentTgtAddr, currentMsgType, currentPayloadLength, currentPayload, currentCrc)
                     if (msg.calculateCrc() == currentCrc) {
-                        messages.add(msg)
+                        if (msg.tgtAddress == myAddr || msg.tgtAddress == broadcastAddr) {
+                            messages.add(msg)
+                        }
                     }
                     resetParser()
                 }

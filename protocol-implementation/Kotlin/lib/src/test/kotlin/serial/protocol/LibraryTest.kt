@@ -131,6 +131,7 @@ class LibraryTest {
     // Test that a basic message is correctly parsed
     @Test fun testParseMessage() {
         val classUnderTest = Library()
+        classUnderTest.myAddr = 0x02.toByte()
         val msg = classUnderTest.createMessage(tgtAddress = 0x02.toByte(), msgType = 0x01.toByte(), payload = byteArrayOf(0x01.toByte(), 0x02.toByte()), isBroadcast = false)
         val msgBytes = msg.toByteArray()
         val parsedMsg = classUnderTest.parseMessage(msgBytes)
@@ -153,6 +154,7 @@ class LibraryTest {
     // Test that multiple basic messages are correctly parsed
     @Test fun testParseMultipleMessages() {
         val classUnderTest = Library()
+        classUnderTest.myAddr = 0x02.toByte()
         val msg = classUnderTest.createMessage(tgtAddress = 0x02.toByte(), msgType = 0x01.toByte(), payload = byteArrayOf(0x01.toByte(), 0x02.toByte()), isBroadcast = false)
         val msg2 = classUnderTest.createMessage(tgtAddress = 0x02.toByte(), msgType = 0x01.toByte(), payload = byteArrayOf(0x01.toByte(), 0x02.toByte()), isBroadcast = false)
         val msgBytes = msg.toByteArray() + msg2.toByteArray()
