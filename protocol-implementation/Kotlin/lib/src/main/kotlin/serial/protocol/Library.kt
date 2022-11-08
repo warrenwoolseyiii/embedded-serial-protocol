@@ -88,6 +88,16 @@ class Library {
     var myAddr: Byte = 0x00.toByte()
     var broadcastAddr: Byte = 0xFF.toByte()
 
+    // Private parsing state machine fields
+    private var state = 0
+    private var currentTgtAddr: Byte = 0x00.toByte()
+    private var currentSrcAddr: Byte = 0x00.toByte()
+    private var currentMsgType: Byte = 0x00.toByte()
+    private var currentPayloadLength: Short = 0
+    private var currentPayload: ByteArray = ByteArray(0)
+    private var currentPayloadNdx = 0
+    private var currentCrc: Short = 0
+
     fun someLibraryMethod(): Boolean {
         return true
     }
@@ -108,8 +118,91 @@ class Library {
         return Message(srcAddress, tgtAddress, msgType, payloadLength, payload, crc)
     }
 
-    // Method to parse an incoming byte array, returns a Message object
-    fun parseMessage(byteArray: ByteArray): Message? {
-        return null
+    // Method to parse an incoming byte array, returns an array of Message objects
+    fun parseMessage(byteArray: ByteArray): ArrayList<Message> {
+        val messages = ArrayList<Message>()
+
+        // Parsing state machine looks at the header bytes first
+        for (i in 0 until byteArray.size) {
+            when (state) {
+                0 -> {
+                    if (byteArray[i] == HEADER_0) {
+                        state = 1
+                    }
+                }
+                1 -> {
+                    if (byteArray[i] == HEADER_1) {
+                        state = 2
+                    } else {
+                        state = 0
+                    }
+                }
+                2 -> {
+                    if (byteArray[i] == HEADER_2) {
+                        state = 3
+                    } else {
+                        state = 0
+                    }
+                }
+                3 -> {
+                    currentSrcAddr = byteArray[i]
+                    state = 4
+                }
+                4 -> {
+                    currentTgtAddr = byteArray[i]
+                    state = 5
+                }
+                5 -> {
+                    currentMsgType = byteArray[i]
+                    state = 6
+                }
+                6 -> {
+                    currentPayloadLength = (byteArray[i].toInt() shl 8).toShort()
+                    state = 7
+                }
+                7 -> {
+                    currentPayloadLength = (currentPayloadLength.toInt() or byteArray[i].toInt()).toShort()
+                    currentPayload = ByteArray(currentPayloadLength.toInt())
+                    if (currentPayloadLength == 0.toShort()) {
+                        state = 9
+                    } else {
+                        state = 8
+                    }
+                    state = 8
+                }
+                8 -> {
+                    currentPayload[currentPayloadNdx++] = byteArray[i]
+                    if (currentPayloadNdx == currentPayloadLength.toInt()) {
+                        state = 9
+                    }
+                }
+                9 -> {
+                    currentCrc = (byteArray[i].toInt() shl 8).toShort()
+                    state = 10
+                }
+                10 -> {
+                    currentCrc = (currentCrc.toInt() or byteArray[i].toInt()).toShort()
+                    state = 0
+                    val msg = Message(currentSrcAddr, currentTgtAddr, currentMsgType, currentPayloadLength, currentPayload, currentCrc)
+                    if (msg.calculateCrc() == currentCrc) {
+                        messages.add(msg)
+                    }
+                    resetParser()
+                }
+            }
+        }
+        return messages
+    }
+
+    // Method that resets the parsing state machine
+    fun resetParser() {
+        state = 0
+        currentSrcAddr = 0x00.toByte()
+        currentTgtAddr = 0x00.toByte()
+        currentMsgType = 0x00.toByte()
+        currentPayloadLength = 0
+        currentPayload = ByteArray(0)
+        currentPayloadNdx = 0
+        currentCrc = 0
     }
 }
