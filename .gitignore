@@ -13,3 +13,4 @@ protocol-implementation/Kotlin/.gradle
 
 # Ignore Gradle build output directory
 protocol-implementation/Kotlin/build
+protocol-implementation/Kotlin/lib/build
