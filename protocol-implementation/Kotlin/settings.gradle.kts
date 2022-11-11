@@ -8,4 +8,4 @@
  */
 
 rootProject.name = "serial-protocol"
-include("lib")
+include("serial-protocol")
