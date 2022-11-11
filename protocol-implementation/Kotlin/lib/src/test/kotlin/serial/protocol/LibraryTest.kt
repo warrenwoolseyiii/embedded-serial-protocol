@@ -216,4 +216,33 @@ class LibraryTest {
         assertTrue(parsedMsgObj2.payload[0] == 0x01.toByte(), "parsedMsgObj2.payload[0] should be 0x01")
         assertTrue(parsedMsgObj2.payload[1] == 0x02.toByte(), "parsedMsgObj2.payload[1] should be 0x02")
     }
+
+    // Test that a basic message can be parsed halfway and then the rest of the message can be parsed
+    @Test fun testParseMessageHalfway() {
+        val classUnderTest = Library()
+        classUnderTest.myAddr = 0x02.toByte()
+        val msg = classUnderTest.createMessage(tgtAddress = 0x02.toByte(), msgType = 0x01.toByte(), payload = byteArrayOf(0x01.toByte(), 0x02.toByte()), isBroadcast = false)
+        val msgBytes = msg.toByteArray()
+        val parsedMsg = classUnderTest.parseMessage(msgBytes.sliceArray(0..(msgBytes.size / 2)))
+        
+        // Check the parsed message list size, it should be 0 messages long
+        assertTrue(parsedMsg.size == 0, "parsedMsg should be 0 messages long")
+
+        // Parse the rest of the message
+        val parsedMsg2 = classUnderTest.parseMessage(msgBytes.sliceArray(((msgBytes.size / 2) + 1)..(msgBytes.size - 1)))
+
+        // Check the parsed message list size, it should be 1 messages long
+        assertTrue(parsedMsg2.size == 1, "parsedMsg2 should be 1 messages long")
+
+        // Get the message object from the list
+        val parsedMsgObj = parsedMsg2[0]
+
+        // Check the message object
+        assertTrue(parsedMsgObj.srcAddress == classUnderTest.myAddr, "parsedMsgObj.srcAddress should be myAddr")
+        assertTrue(parsedMsgObj.tgtAddress == 0x02.toByte(), "parsedMsgObj.tgtAddress should be 0x02")
+        assertTrue(parsedMsgObj.msgType == 0x01.toByte(), "parsedMsgObj.msgType should be 0x01")
+        assertTrue(parsedMsgObj.payload.size == 2, "parsedMsgObj.payload should be 2 bytes long")
+        assertTrue(parsedMsgObj.payload[0] == 0x01.toByte(), "parsedMsgObj.payload[0] should be 0x01")
+        assertTrue(parsedMsgObj.payload[1] == 0x02.toByte(), "parsedMsgObj.payload[1] should be 0x02")
+    }
 }
