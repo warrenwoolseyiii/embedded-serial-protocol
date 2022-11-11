@@ -75,7 +75,7 @@ class LibraryTest {
         val classUnderTest = Library()
         // This should throw an exception
         try {
-            val msg = classUnderTest.createMessage(tgtAddress = 0x02.toByte(), msgType = 0x01.toByte(), payload = ByteArray(65536), isBroadcast = false)
+            classUnderTest.createMessage(tgtAddress = 0x02.toByte(), msgType = 0x01.toByte(), payload = ByteArray(65536), isBroadcast = false)
             // If we get here then the test failed
             assertTrue(false, "Payload too large should throw an exception")
         } catch (e: Exception) {
@@ -244,5 +244,17 @@ class LibraryTest {
         assertTrue(parsedMsgObj.payload.size == 2, "parsedMsgObj.payload should be 2 bytes long")
         assertTrue(parsedMsgObj.payload[0] == 0x01.toByte(), "parsedMsgObj.payload[0] should be 0x01")
         assertTrue(parsedMsgObj.payload[1] == 0x02.toByte(), "parsedMsgObj.payload[1] should be 0x02")
+    }
+
+    // Test that a basic message that is not for me is parsed but not returned
+    @Test fun testParseMessageNotForMe() {
+        val classUnderTest = Library()
+        classUnderTest.myAddr = 0x02.toByte()
+        val msg = classUnderTest.createMessage(tgtAddress = 0x01.toByte(), msgType = 0x01.toByte(), payload = byteArrayOf(0x01.toByte(), 0x02.toByte()), isBroadcast = false)
+        val msgBytes = msg.toByteArray()
+        val parsedMsg = classUnderTest.parseMessage(msgBytes)
+
+        // Check the parsed message list size, it should be 0 messages long
+        assertTrue(parsedMsg.size == 0, "parsedMsg should be 0 messages long")
     }
 }
