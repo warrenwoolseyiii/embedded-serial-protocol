@@ -125,7 +125,7 @@ class Library {
             throw Exception("Payload length cannot exceed $MAX_PAYLOAD_LENGTH bytes")
         }
         val payloadLength = payload.size.toShort()
-        val srcAddress = if (isBroadcast) broadcastAddr else myAddr
+        val srcAddress = myAddr
         val crc = Message(srcAddress, tgtAddress, msgType, payloadLength, payload, 0).calculateCrc()
         return Message(srcAddress, tgtAddress, msgType, payloadLength, payload, crc)
     }
@@ -137,42 +137,42 @@ class Library {
         // Parsing state machine looks at the header bytes first
         for (i in 0 until byteArray.size) {
             when (state) {
-                0 -> {
+                HEADER_POS_0 -> {
                     if (byteArray[i] == HEADER_0) {
                         state = 1
                     }
                 }
-                1 -> {
+                HEADER_POS_1 -> {
                     if (byteArray[i] == HEADER_1) {
                         state = 2
                     } else {
                         state = 0
                     }
                 }
-                2 -> {
+                HEADER_POS_2 -> {
                     if (byteArray[i] == HEADER_2) {
                         state = 3
                     } else {
                         state = 0
                     }
                 }
-                3 -> {
+                SRC_ADDRESS_POS -> {
                     currentSrcAddr = byteArray[i]
                     state = 4
                 }
-                4 -> {
+                TGT_ADDRESS_POS -> {
                     currentTgtAddr = byteArray[i]
                     state = 5
                 }
-                5 -> {
+                MSG_TYPE_POS -> {
                     currentMsgType = byteArray[i]
                     state = 6
                 }
-                6 -> {
+                PAYLOAD_LENGTH_MSB_POS -> {
                     currentPayloadLength = (byteArray[i].toInt() shl 8).toShort()
                     state = 7
                 }
-                7 -> {
+                PAYLOAD_LENGTH_LSB_POS -> {
                     currentPayloadLength = (currentPayloadLength.toInt() or byteArray[i].toInt()).toShort()
                     currentPayload = ByteArray(currentPayloadLength.toInt())
                     if (currentPayloadLength == 0.toShort()) {
@@ -182,19 +182,19 @@ class Library {
                     }
                     state = 8
                 }
-                8 -> {
+                PAYLOAD_POS -> {
                     currentPayload[currentPayloadNdx++] = byteArray[i]
                     if (currentPayloadNdx == currentPayloadLength.toInt()) {
                         state = 9
                     }
                 }
-                9 -> {
+                PAYLOAD_POS + 1 -> {
                     currentCrc = (byteArray[i].toInt() shl 8).toShort()
                     state = 10
                 }
-                10 -> {
+                PAYLOAD_POS + 2 -> {
                     currentCrc = (currentCrc.toInt() or (byteArray[i].toInt() and 0xFF)).toShort()
-                    val msg = Message(currentSrcAddr, currentTgtAddr, currentMsgType, currentPayloadLength, currentPayload, currentCrc)
+                    val msg = Message(srcAddress=currentSrcAddr, tgtAddress=currentTgtAddr, msgType=currentMsgType, payloadLength=currentPayloadLength, payload=currentPayload, crc=currentCrc)
                     if (msg.calculateCrc() == currentCrc) {
                         if (msg.tgtAddress == myAddr || msg.tgtAddress == broadcastAddr) {
                             messages.add(msg)
