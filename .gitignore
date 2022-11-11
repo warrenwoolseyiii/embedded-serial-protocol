@@ -6,3 +6,11 @@ protocol-implementation/Python/__pycache__
 
 # Example build directory
 examples/Arduino/sketches/basic_example/build/
+
+# Kotlin specifics
+# Ignore Gradle project-specific cache directory
+protocol-implementation/Kotlin/.gradle
+
+# Ignore Gradle build output directory
+protocol-implementation/Kotlin/build
+protocol-implementation/Kotlin/serial-protocol/build
