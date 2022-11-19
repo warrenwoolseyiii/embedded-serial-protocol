@@ -14,6 +14,9 @@ class App {
 
 // Main function that accepts command line arguments
 fun main(args: Array<String>) {
+    // Verbose output disabled by default
+    var verbose = false
+
     // Search for the port name argument from the command line
     var portName = ""
     for (i in 0 until args.size) {
@@ -48,20 +51,23 @@ fun main(args: Array<String>) {
     // Main loop of the program, read data from the port and print any messages received
     var protocol = CommsProtocol()
     protocol.ignoreSrcAddr = true
-    protocol.logEnabled = true
+    //protocol.logEnabled = true
     while(true) {
         // Read data from the port
         val numBytesAvailable = port.bytesAvailable()
         if (numBytesAvailable > 0) {
             val readBuffer = ByteArray(numBytesAvailable)
             val numBytesRead = port.readBytes(readBuffer, numBytesAvailable.toLong())
-            println("Read $numBytesRead bytes from the port.")
+            if (verbose)
+                println("Read $numBytesRead bytes from the port.")
 
             // Print the data
-            for (i in 0 until numBytesRead) {
-                print(String.format("%02X ", readBuffer[i]))
+            if (verbose) { 
+                for (i in 0 until numBytesRead) {
+                    print(String.format("%02X ", readBuffer[i]))
+                }
+                println()
             }
-            println()
 
             // Attempt to parse the data as a message
             val messages = protocol.parseMessage(readBuffer)
@@ -72,7 +78,13 @@ fun main(args: Array<String>) {
                 println("Target address: ${msg.tgtAddress}")
                 println("Message type: ${msg.msgType}")
                 println("Payload length: ${msg.payloadLength}")
-                println("Payload: ${msg.payload}")
+                if( msg.payloadLength > 0) {
+                    println("Payload:")
+                    for (i in 0 until msg.payloadLength) {
+                        print(String.format("%02X ", msg.payload[i]))
+                    }
+                    println()
+                }
                 println("CRC: ${msg.crc}")
                 println("----------------------------------------")
             }
