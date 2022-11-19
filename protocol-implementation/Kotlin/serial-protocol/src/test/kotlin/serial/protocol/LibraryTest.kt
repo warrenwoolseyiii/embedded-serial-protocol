@@ -7,28 +7,23 @@ import kotlin.test.Test
 import kotlin.test.assertTrue
 
 class LibraryTest {
-    @Test fun someLibraryMethodReturnsTrue() {
-        val classUnderTest = Library()
-        assertTrue(classUnderTest.someLibraryMethod(), "someLibraryMethod should return 'true'")
-    }
-
     // Test function to set and get myAddr
     @Test fun testMyAddr() {
-        val classUnderTest = Library()
+        val classUnderTest = CommsProtocol()
         classUnderTest.myAddr = 0x01.toByte()
         assertTrue(classUnderTest.myAddr == 0x01.toByte(), "myAddr should be 0x01")
     }
 
     // Test function to set and get the broadcast address
     @Test fun testBroadcastAddr() {
-        val classUnderTest = Library()
+        val classUnderTest = CommsProtocol()
         classUnderTest.broadcastAddr = 0xFF.toByte()
         assertTrue(classUnderTest.broadcastAddr == 0xFF.toByte(), "broadcastAddr should be 0xFF")
     }
 
     // Test function to generate a basic message
     @Test fun testGenerateMessage() {
-        val classUnderTest = Library()
+        val classUnderTest = CommsProtocol()
         val msg = classUnderTest.createMessage(tgtAddress = 0x02.toByte(), msgType = 0x01.toByte(), payload = byteArrayOf(0x01.toByte(), 0x02.toByte()), isBroadcast = false)
         assertTrue(msg.srcAddress == classUnderTest.myAddr, "srcAddress should be myAddr")
         assertTrue(msg.tgtAddress == 0x02.toByte(), "tgtAddress should be 0x02")
@@ -40,7 +35,7 @@ class LibraryTest {
 
     // Test function to generate a broadcast message
     @Test fun testGenerateBroadcastMessage() {
-        val classUnderTest = Library()
+        val classUnderTest = CommsProtocol()
         val msg = classUnderTest.createMessage(tgtAddress = classUnderTest.broadcastAddr, msgType = 0x01.toByte(), payload = byteArrayOf(0x01.toByte(), 0x02.toByte()), isBroadcast = true)
         assertTrue(msg.srcAddress == classUnderTest.myAddr, "srcAddress should be myAddr")
         assertTrue(msg.tgtAddress == classUnderTest.broadcastAddr, "tgtAddress should be broadcastAddr")
@@ -52,7 +47,7 @@ class LibraryTest {
 
     // Test function to generate a message with no payload
     @Test fun testGenerateMessageNoPayload() {
-        val classUnderTest = Library()
+        val classUnderTest = CommsProtocol()
         val msg = classUnderTest.createMessage(tgtAddress = 0x02.toByte(), msgType = 0x01.toByte(), payload = byteArrayOf(), isBroadcast = false)
         assertTrue(msg.srcAddress == classUnderTest.myAddr, "srcAddress should be myAddr")
         assertTrue(msg.tgtAddress == 0x02.toByte(), "tgtAddress should be 0x02")
@@ -62,7 +57,7 @@ class LibraryTest {
 
     // Test function to generate a message with the largest possible payload
     @Test fun testGenerateMessageMaxPayload() {
-        val classUnderTest = Library()
+        val classUnderTest = CommsProtocol()
         val msg = classUnderTest.createMessage(tgtAddress = 0x02.toByte(), msgType = 0x01.toByte(), payload = ByteArray(65535), isBroadcast = false)
         assertTrue(msg.srcAddress == classUnderTest.myAddr, "srcAddress should be myAddr")
         assertTrue(msg.tgtAddress == 0x02.toByte(), "tgtAddress should be 0x02")
@@ -72,7 +67,7 @@ class LibraryTest {
 
     // Test function to generate a message with a payload that is too large
     @Test fun testGenerateMessageTooLargePayload() {
-        val classUnderTest = Library()
+        val classUnderTest = CommsProtocol()
         // This should throw an exception
         try {
             classUnderTest.createMessage(tgtAddress = 0x02.toByte(), msgType = 0x01.toByte(), payload = ByteArray(65536), isBroadcast = false)
@@ -88,49 +83,49 @@ class LibraryTest {
 
     // Test that the message is correctly formatted in a byte array
     @Test fun testMessageToByteArray() {
-        val classUnderTest = Library()
+        val classUnderTest = CommsProtocol()
         val msg = classUnderTest.createMessage(tgtAddress = 0x02.toByte(), msgType = 0x01.toByte(), payload = byteArrayOf(0x01.toByte(), 0x02.toByte()), isBroadcast = false)
         val msgBytes = msg.toByteArray()
         val crc = msg.crc;
         
         // Check the header, values are constants in the companion class of the unit under test
-        assertTrue(msgBytes[Library.HEADER_POS_0] == Library.HEADER_0, "msgBytes[0] should be HEADER_0")
-        assertTrue(msgBytes[Library.HEADER_POS_1] == Library.HEADER_1, "msgBytes[1] should be HEADER_1")
-        assertTrue(msgBytes[Library.HEADER_POS_2] == Library.HEADER_2, "msgBytes[2] should be HEADER_2")
-        assertTrue(msgBytes[Library.SRC_ADDRESS_POS] == classUnderTest.myAddr, "msgBytes[3] should be myAddr")
-        assertTrue(msgBytes[Library.TGT_ADDRESS_POS] == 0x02.toByte(), "msgBytes[4] should be 0x02")
-        assertTrue(msgBytes[Library.MSG_TYPE_POS] == 0x01.toByte(), "msgBytes[5] should be 0x01")
-        assertTrue(msgBytes[Library.PAYLOAD_LENGTH_MSB_POS] == 0x00.toByte(), "msgBytes[6] should be 0x00")
-        assertTrue(msgBytes[Library.PAYLOAD_LENGTH_LSB_POS] == 0x02.toByte(), "msgBytes[7] should be 0x02")
-        assertTrue(msgBytes[Library.PAYLOAD_POS] == 0x01.toByte(), "msgBytes[8] should be 0x01")
-        assertTrue(msgBytes[Library.PAYLOAD_POS + 1] == 0x02.toByte(), "msgBytes[9] should be 0x02")
-        assertTrue(msgBytes[Library.PAYLOAD_POS + 2] == (crc.toInt() shr 8).toByte(), "msgBytes[10] should be crc rsh 8")
-        assertTrue(msgBytes[Library.PAYLOAD_POS + 3] == (crc.toInt() and 0xFF).toByte(), "msgBytes[11] should be crc and 0xFF")
+        assertTrue(msgBytes[CommsProtocol.HEADER_POS_0] == CommsProtocol.HEADER_0, "msgBytes[0] should be HEADER_0")
+        assertTrue(msgBytes[CommsProtocol.HEADER_POS_1] == CommsProtocol.HEADER_1, "msgBytes[1] should be HEADER_1")
+        assertTrue(msgBytes[CommsProtocol.HEADER_POS_2] == CommsProtocol.HEADER_2, "msgBytes[2] should be HEADER_2")
+        assertTrue(msgBytes[CommsProtocol.SRC_ADDRESS_POS] == classUnderTest.myAddr, "msgBytes[3] should be myAddr")
+        assertTrue(msgBytes[CommsProtocol.TGT_ADDRESS_POS] == 0x02.toByte(), "msgBytes[4] should be 0x02")
+        assertTrue(msgBytes[CommsProtocol.MSG_TYPE_POS] == 0x01.toByte(), "msgBytes[5] should be 0x01")
+        assertTrue(msgBytes[CommsProtocol.PAYLOAD_LENGTH_MSB_POS] == 0x00.toByte(), "msgBytes[6] should be 0x00")
+        assertTrue(msgBytes[CommsProtocol.PAYLOAD_LENGTH_LSB_POS] == 0x02.toByte(), "msgBytes[7] should be 0x02")
+        assertTrue(msgBytes[CommsProtocol.PAYLOAD_POS] == 0x01.toByte(), "msgBytes[8] should be 0x01")
+        assertTrue(msgBytes[CommsProtocol.PAYLOAD_POS + 1] == 0x02.toByte(), "msgBytes[9] should be 0x02")
+        assertTrue(msgBytes[CommsProtocol.PAYLOAD_POS + 2] == (crc.toInt() shr 8).toByte(), "msgBytes[10] should be crc rsh 8")
+        assertTrue(msgBytes[CommsProtocol.PAYLOAD_POS + 3] == (crc.toInt() and 0xFF).toByte(), "msgBytes[11] should be crc and 0xFF")
     }
 
     // Test that the message is correctly formatted in a byte array with no payload
     @Test fun testMessageToByteArrayNoPayload() {
-        val classUnderTest = Library()
+        val classUnderTest = CommsProtocol()
         val msg = classUnderTest.createMessage(tgtAddress = 0x02.toByte(), msgType = 0x01.toByte(), payload = byteArrayOf(), isBroadcast = false)
         val msgBytes = msg.toByteArray()
         val crc = msg.crc;
         
         // Check the header, values are constants in the companion class of the unit under test
-        assertTrue(msgBytes[Library.HEADER_POS_0] == Library.HEADER_0, "msgBytes[0] should be HEADER_0")
-        assertTrue(msgBytes[Library.HEADER_POS_1] == Library.HEADER_1, "msgBytes[1] should be HEADER_1")
-        assertTrue(msgBytes[Library.HEADER_POS_2] == Library.HEADER_2, "msgBytes[2] should be HEADER_2")
-        assertTrue(msgBytes[Library.SRC_ADDRESS_POS] == classUnderTest.myAddr, "msgBytes[3] should be myAddr")
-        assertTrue(msgBytes[Library.TGT_ADDRESS_POS] == 0x02.toByte(), "msgBytes[4] should be 0x02")
-        assertTrue(msgBytes[Library.MSG_TYPE_POS] == 0x01.toByte(), "msgBytes[5] should be 0x01")
-        assertTrue(msgBytes[Library.PAYLOAD_LENGTH_MSB_POS] == 0x00.toByte(), "msgBytes[6] should be 0x00")
-        assertTrue(msgBytes[Library.PAYLOAD_LENGTH_LSB_POS] == 0x00.toByte(), "msgBytes[7] should be 0x00")
-        assertTrue(msgBytes[Library.PAYLOAD_POS] == (crc.toInt() shr 8).toByte(), "msgBytes[8] should be crc rsh 8")
-        assertTrue(msgBytes[Library.PAYLOAD_POS + 1] == (crc.toInt() and 0xFF).toByte(), "msgBytes[9] should be crc and 0xFF")
+        assertTrue(msgBytes[CommsProtocol.HEADER_POS_0] == CommsProtocol.HEADER_0, "msgBytes[0] should be HEADER_0")
+        assertTrue(msgBytes[CommsProtocol.HEADER_POS_1] == CommsProtocol.HEADER_1, "msgBytes[1] should be HEADER_1")
+        assertTrue(msgBytes[CommsProtocol.HEADER_POS_2] == CommsProtocol.HEADER_2, "msgBytes[2] should be HEADER_2")
+        assertTrue(msgBytes[CommsProtocol.SRC_ADDRESS_POS] == classUnderTest.myAddr, "msgBytes[3] should be myAddr")
+        assertTrue(msgBytes[CommsProtocol.TGT_ADDRESS_POS] == 0x02.toByte(), "msgBytes[4] should be 0x02")
+        assertTrue(msgBytes[CommsProtocol.MSG_TYPE_POS] == 0x01.toByte(), "msgBytes[5] should be 0x01")
+        assertTrue(msgBytes[CommsProtocol.PAYLOAD_LENGTH_MSB_POS] == 0x00.toByte(), "msgBytes[6] should be 0x00")
+        assertTrue(msgBytes[CommsProtocol.PAYLOAD_LENGTH_LSB_POS] == 0x00.toByte(), "msgBytes[7] should be 0x00")
+        assertTrue(msgBytes[CommsProtocol.PAYLOAD_POS] == (crc.toInt() shr 8).toByte(), "msgBytes[8] should be crc rsh 8")
+        assertTrue(msgBytes[CommsProtocol.PAYLOAD_POS + 1] == (crc.toInt() and 0xFF).toByte(), "msgBytes[9] should be crc and 0xFF")
     }
 
     // Test that a basic message is correctly parsed
     @Test fun testParseMessage() {
-        val classUnderTest = Library()
+        val classUnderTest = CommsProtocol()
         classUnderTest.myAddr = 0x02.toByte()
         val msg = classUnderTest.createMessage(tgtAddress = 0x02.toByte(), msgType = 0x01.toByte(), payload = byteArrayOf(0x01.toByte(), 0x02.toByte()), isBroadcast = false)
         val msgBytes = msg.toByteArray()
@@ -153,7 +148,7 @@ class LibraryTest {
 
     // Test that multiple basic messages are correctly parsed
     @Test fun testParseMultipleMessages() {
-        val classUnderTest = Library()
+        val classUnderTest = CommsProtocol()
         classUnderTest.myAddr = 0x02.toByte()
         val msg = classUnderTest.createMessage(tgtAddress = 0x02.toByte(), msgType = 0x01.toByte(), payload = byteArrayOf(0x01.toByte(), 0x02.toByte()), isBroadcast = false)
         val msg2 = classUnderTest.createMessage(tgtAddress = 0x02.toByte(), msgType = 0x01.toByte(), payload = byteArrayOf(0x01.toByte(), 0x02.toByte()), isBroadcast = false)
@@ -186,7 +181,7 @@ class LibraryTest {
 
     // Test that a basic message from a sender and broadcast message is correctly parsed
     @Test fun testParseMessageFromSenderAndBroadcast() {
-        val classUnderTest = Library()
+        val classUnderTest = CommsProtocol()
         classUnderTest.myAddr = 0x02.toByte()
         val msg = classUnderTest.createMessage(tgtAddress = 0x02.toByte(), msgType = 0x01.toByte(), payload = byteArrayOf(0x01.toByte(), 0x02.toByte()), isBroadcast = false)
         val msg2 = classUnderTest.createMessage(tgtAddress = classUnderTest.broadcastAddr, msgType = 0x01.toByte(), payload = byteArrayOf(0x01.toByte(), 0x02.toByte()), isBroadcast = true)
@@ -219,7 +214,7 @@ class LibraryTest {
 
     // Test that a basic message can be parsed halfway and then the rest of the message can be parsed
     @Test fun testParseMessageHalfway() {
-        val classUnderTest = Library()
+        val classUnderTest = CommsProtocol()
         classUnderTest.myAddr = 0x02.toByte()
         val msg = classUnderTest.createMessage(tgtAddress = 0x02.toByte(), msgType = 0x01.toByte(), payload = byteArrayOf(0x01.toByte(), 0x02.toByte()), isBroadcast = false)
         val msgBytes = msg.toByteArray()
@@ -248,7 +243,7 @@ class LibraryTest {
 
     // Test that a basic message that is not for me is parsed but not returned
     @Test fun testParseMessageNotForMe() {
-        val classUnderTest = Library()
+        val classUnderTest = CommsProtocol()
         classUnderTest.myAddr = 0x02.toByte()
         val msg = classUnderTest.createMessage(tgtAddress = 0x01.toByte(), msgType = 0x01.toByte(), payload = byteArrayOf(0x01.toByte(), 0x02.toByte()), isBroadcast = false)
         val msgBytes = msg.toByteArray()

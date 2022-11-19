@@ -3,7 +3,7 @@
  */
 package serial.protocol
 
-class Library {
+class CommsProtocol {
 
     // Public constants for byte positions and values
     companion object {
@@ -69,18 +69,19 @@ class Library {
         // Method to calculate CRC
         fun calculateCrc(): Short {
             val array = toByteArray()
-            var crc = 0xFFFF.toShort()
+            var crc = 0xFFFF
             for (i in 0 until array.size - 2) {
-                crc = (crc.toInt() xor array[i].toInt()).toShort()
+                crc = (crc.toInt() xor (array[i].toInt() and 0xFF))
                 for (j in 0 until 8) {
                     if (crc.toInt() and 0x0001 != 0) {
-                        crc = ((crc.toInt() shr 1) xor 0xA001).toShort()
+                        crc = ((crc.toInt() shr 1) xor 0xA001)
                     } else {
-                        crc = (crc.toInt() shr 1).toShort()
+                        crc = (crc.toInt() shr 1)
                     }
                 }
+                println(crc)
             }
-            return crc
+            return crc.toShort()
         }
 
         // Print the msg fields
@@ -99,6 +100,10 @@ class Library {
     // Public address fields
     var myAddr: Byte = 0x00.toByte()
     var broadcastAddr: Byte = 0xFF.toByte()
+    var ignoreSrcAddr: Boolean = false
+
+    // Public logging output
+    var logEnabled: Boolean = false
 
     // Private parsing state machine fields
     private var state = 0
@@ -110,8 +115,11 @@ class Library {
     private var currentPayloadNdx = 0
     private var currentCrc: Short = 0
 
-    fun someLibraryMethod(): Boolean {
-        return true
+    // Method to log to the console or other source
+    fun log(msg: String) {
+        if (logEnabled) {
+            println(msg)
+        }
     }
 
     // Method to create a message, returns a Message object
@@ -127,7 +135,10 @@ class Library {
         val payloadLength = payload.size.toShort()
         val srcAddress = myAddr
         val crc = Message(srcAddress, tgtAddress, msgType, payloadLength, payload, 0).calculateCrc()
-        return Message(srcAddress, tgtAddress, msgType, payloadLength, payload, crc)
+        val msg = Message(srcAddress, tgtAddress, msgType, payloadLength, payload, crc)
+        log("Created message:")
+        log(msg.toString())
+        return msg
     }
 
     // Method to parse an incoming byte array, returns an array of Message objects
@@ -136,6 +147,8 @@ class Library {
 
         // Parsing state machine looks at the header bytes first
         for (i in 0 until byteArray.size) {
+            log("Parsing byte ${byteArray[i]}")
+            log("State is $state")
             when (state) {
                 HEADER_POS_0 -> {
                     if (byteArray[i] == HEADER_0) {
@@ -180,7 +193,6 @@ class Library {
                     } else {
                         state = 8
                     }
-                    state = 8
                 }
                 PAYLOAD_POS -> {
                     currentPayload[currentPayloadNdx++] = byteArray[i]
@@ -196,9 +208,14 @@ class Library {
                     currentCrc = (currentCrc.toInt() or (byteArray[i].toInt() and 0xFF)).toShort()
                     val msg = Message(srcAddress=currentSrcAddr, tgtAddress=currentTgtAddr, msgType=currentMsgType, payloadLength=currentPayloadLength, payload=currentPayload, crc=currentCrc)
                     if (msg.calculateCrc() == currentCrc) {
-                        if (msg.tgtAddress == myAddr || msg.tgtAddress == broadcastAddr) {
+                        log("Recieved valid message:")
+                        if (msg.tgtAddress == myAddr || msg.tgtAddress == broadcastAddr || ignoreSrcAddr) {
+                            log(msg.toString())
                             messages.add(msg)
                         }
+                    }
+                    else {
+                        log("Message failed CRC check, expected ${msg.calculateCrc()} but got $currentCrc")
                     }
                     resetParser()
                 }
