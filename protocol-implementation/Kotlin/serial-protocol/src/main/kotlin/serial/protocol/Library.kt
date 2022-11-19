@@ -79,7 +79,6 @@ class CommsProtocol {
                         crc = (crc.toInt() shr 1)
                     }
                 }
-                println(crc)
             }
             return crc.toShort()
         }
@@ -126,8 +125,7 @@ class CommsProtocol {
     fun createMessage(
         tgtAddress: Byte,
         msgType: Byte,
-        payload: ByteArray,
-        isBroadcast: Boolean): Message{
+        payload: ByteArray): Message{
         // Check the payload length and throw an exception if it is too long
         if (payload.size > MAX_PAYLOAD_LENGTH) {
             throw Exception("Payload length cannot exceed $MAX_PAYLOAD_LENGTH bytes")
