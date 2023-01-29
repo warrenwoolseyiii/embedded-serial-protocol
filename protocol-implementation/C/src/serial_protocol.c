@@ -1,12 +1,12 @@
-#include "serial_protocol.h"
-#include "user_impl.h"
+#include <serial_protocol.h>
+#include <user_impl.h>
 #include <string.h>
 
 uint32_t _parsing_index = 0;
 uint32_t _current_message_len = 0;
-uint8_t _current_message[RX_BUFFER_LEN];
 uint8_t _my_addr = 0;
-uint8_t _broadcast_addr = 0xFF;
+uint8_t _broadcast_addr = 0;
+uint8_t _current_message[RX_BUFFER_LEN];
 
 void _queue_byte(uint8_t byte)
 {
