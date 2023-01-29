@@ -29,7 +29,6 @@ HEADER_BYTE2 = 0xFF
 
 # User address, you can change this to whatever you want
 my_addr = 0x01
-broadcast_addr = 0xFF
 
 # Maximum allowable length, you can change this - there is a maximum value of 65535 bytes
 MAX_MSG_LEN = 65535
@@ -187,7 +186,7 @@ def parse_byte(byte):
         # Check the CRC
         global my_addr
         if current_msg.msg_crc == calculate_crc(
-                current_msg) and (current_msg.tgt_addr == my_addr or current_msg.tgt_addr == broadcast_addr):
+                current_msg) and current_msg.tgt_addr == my_addr:
             # CRC is good, send the message to the message handler
             notify_parsed_message(current_msg)
             reset_parsing_state()

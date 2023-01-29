@@ -18,7 +18,7 @@ fun main(args: Array<String>) {
     var verbose = false
 
     // Search for the port name argument from the command line
-    var portName = ""
+    var portName : String? = null
     for (i in 0 until args.size) {
         if (args[i] == "-p") {
             portName = args[i + 1]
@@ -34,11 +34,13 @@ fun main(args: Array<String>) {
     }
 
     // For now override the port name and baud rate
-    portName = "/dev/ttyACM0"
-    baudRate = 115200
+    if (portName == null)
+        portName = "/dev/ttyACM0"
+    if (baudRate == 0)
+        baudRate = 115200
 
     // Attempt to open the port, handle errors
-    var port : SerialPort? = null
+    var port : SerialPort?
     try {
         port = SerialPort.getCommPort(portName)
         port.baudRate = baudRate

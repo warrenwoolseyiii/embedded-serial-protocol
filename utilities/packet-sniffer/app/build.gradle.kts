@@ -36,7 +36,7 @@ dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit")
 
     // Use a local jar file located in "libs" directory
-    implementation(files("libs/serial-protocol-0.1.0.jar"))
+    implementation(files("libs/serial-protocol-0.1.1.jar"))
 
     // Utilize jSerialComm library
     implementation("com.fazecast:jSerialComm:2.7.0")

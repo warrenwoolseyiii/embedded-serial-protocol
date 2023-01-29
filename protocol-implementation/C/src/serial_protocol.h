@@ -46,14 +46,14 @@ extern "C"
 #define HEADER_2_VAL 0xFF
 
 // Define the maximum allowable payload length. The maximum possible size is 65535 bytes.
-#define MAX_PAYLOAD_LEN 65535
+#define MAX_PAYLOAD_LEN 256
 
 // Buffer length parameters
 #define NUM_OVER_HEAD_BYTES 10
 #define RX_BUFFER_LEN ((MAX_PAYLOAD_LEN + NUM_OVER_HEAD_BYTES) * 2)
 
 // Protocol version
-#define PROTOCOL_VERSION 0x0002
+#define PROTOCOL_VERSION 0x0001
 
 // Error codes
 #define SP_OK 0
