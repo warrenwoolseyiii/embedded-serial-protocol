@@ -14,3 +14,10 @@ protocol-implementation/Kotlin/.gradle
 # Ignore Gradle build output directory
 protocol-implementation/Kotlin/build
 protocol-implementation/Kotlin/serial-protocol/build
+
+# Ignore Gradle settings file for the utility project
+utilities/packet-sniffer/.gradle
+
+# Ignore Gradle build output directory for the utility project
+utilities/packet-sniffer/build
+utilities/packet-sniffer/app/build

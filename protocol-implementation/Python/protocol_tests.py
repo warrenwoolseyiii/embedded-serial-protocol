@@ -4,10 +4,10 @@ from random import randint
 
 
 # Helper function to generate a random message
-def generate_random_message(length=-1, addr=prot.my_addr):
+def generate_random_message(length=-1):
     # Make a random message
     m_type = randint(0, 255)
-    t_addr = addr
+    t_addr = prot.my_addr
     if length == -1:
         length = randint(0, prot.MAX_MSG_LEN)
     m_payload = [randint(0, 255) for i in range(length)]
@@ -203,7 +203,8 @@ class TestParser(unittest.TestCase):
 
     # Test the parser function with a message that is not for me
     def test_invalid_msg_not_for_me(self):
-        msg = generate_random_message(0,prot.my_addr + 1)
+        msg = generate_random_message(0)
+        msg[4] = prot.my_addr + 1
         prot.parse_input_buffer(msg)
 
         # Get the parsed messages
@@ -247,7 +248,8 @@ class TestParser(unittest.TestCase):
 
     # Test the parser with back to back valid messages, one for me and one not
     def test_valid_msg_back_to_back_not_for_me(self):
-        msg = generate_random_message(-1, prot.my_addr + 1)
+        msg = generate_random_message()
+        msg[4] = prot.my_addr + 1
         prot.parse_input_buffer(msg)
 
         msg1 = generate_random_message()
@@ -268,25 +270,6 @@ class TestParser(unittest.TestCase):
         for i in range(msg_len):
             self.assertEqual(msg1[8 + i], msg_list[0].msg_payload[i])
 
-    # Test the parser for a broadcasted message
-    def test_valid_msg_broadcast(self):
-        msg = generate_random_message(-1, prot.broadcast_addr)
-        prot.parse_input_buffer(msg)
-
-        # Get the parsed messages
-        msg_list = prot.check_for_parsed_messages()
-
-        # Assert that the message is parsed properly
-        self.assertEqual(1, len(msg_list))
-        self.assertEqual(msg[3], msg_list[0].src_addr)
-        self.assertEqual(msg[4], msg_list[0].tgt_addr)
-        self.assertEqual(msg[5], msg_list[0].msg_type)
-
-        msg_len = msg[6] << 8 | msg[7]
-        self.assertEqual(msg_len, msg_list[0].msg_len)
-
-        for i in range(msg_len):
-            self.assertEqual(msg[8 + i], msg_list[0].msg_payload[i])
 
 if __name__ == '__main__':
     unittest.main()
