@@ -9,7 +9,7 @@
 #define RX_TYPE_1 1
 #define RX_TYPE_2 2
 
-typedef struct
+typedef struct 
 {
     uint8_t type;
     uint16_t length;
