@@ -79,4 +79,3 @@ git add $input_file
 git add $python_outfile
 git add $c_out_file
 git add $kotlin_outfile
-git commit -m "Increment rev field in version.json"
