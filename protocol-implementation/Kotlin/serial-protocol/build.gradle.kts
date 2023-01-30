@@ -6,7 +6,7 @@
  * User Manual available at https://docs.gradle.org/7.5.1/userguide/building_java_projects.html
  */
 
-version = "1.0.17"
+version = "1.0.18"
 plugins {
     // Apply the org.jetbrains.kotlin.jvm Plugin to add support for Kotlin.
     id("org.jetbrains.kotlin.jvm") version "1.6.21"
