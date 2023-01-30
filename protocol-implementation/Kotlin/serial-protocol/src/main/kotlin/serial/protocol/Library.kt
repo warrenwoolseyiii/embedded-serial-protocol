@@ -6,10 +6,6 @@ import Version.VERSION_MAJOR
 import Version.VERSION_MINOR
 import Version.VERSION_REV
 
-import Version.VERSION_MAJOR
-import Version.VERSION_MINOR
-import Version.VERSION_REV
-
 class CommsProtocol {
 
     // Public constants for byte positions and values
