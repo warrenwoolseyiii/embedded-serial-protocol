@@ -28,6 +28,7 @@ extern "C"
     */
 
 #include <stdint.h>
+#include <version.h>
 
 // Byte positions in the message.
 #define HEADER_0_POS 0
@@ -51,9 +52,6 @@ extern "C"
 // Buffer length parameters
 #define NUM_OVER_HEAD_BYTES 10
 #define RX_BUFFER_LEN ((MAX_PAYLOAD_LEN + NUM_OVER_HEAD_BYTES) * 2)
-
-// Protocol version
-#define PROTOCOL_VERSION 0x0001
 
 // Error codes
 #define SP_OK 0
