@@ -19,7 +19,7 @@ class CommsProtocol {
         const val PAYLOAD_LENGTH_MSB_POS = 6
         const val PAYLOAD_LENGTH_LSB_POS = 7
         const val PAYLOAD_POS = 8
-        const val HEADER_0 = 0xAA.toByte()
+        const val HEADER_0 = 0xAA.toByte() 
         const val HEADER_1 = 0x55.toByte()
         const val HEADER_2 = 0xFF.toByte()
         const val MAX_PAYLOAD_LENGTH = 65535
