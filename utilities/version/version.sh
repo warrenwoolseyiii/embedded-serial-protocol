@@ -3,6 +3,11 @@
 # The input JSON file
 input_file="version.json"
 
+### Bump the version ###
+# Increment the rev field in the version.json file
+jq ".VERSION_REV += 1" version.json > version.json.tmp
+mv version.json.tmp version.json
+
 ### C ###
 
 # The output header file
@@ -66,4 +71,11 @@ version="$major.$minor.$rev"
 # Insert the version string into the build.gradle.kts file
 sed -i "s/version = \".*\"/version = \"$version\"/" ../../protocol-implementation/Kotlin/serial-protocol/build.gradle.kts
 
-
+# Add and commit the version.json file
+#./../../protocol-implementation/Kotlin/gradlew build
+git add ../../protocol-implementation/Kotlin/serial-protocol/build.gradle.kts
+git add version.json
+git add $python_outfile
+git add $c_out_file
+git add $kotlin_outfile
+git commit -m "Increment rev field in version.json"
