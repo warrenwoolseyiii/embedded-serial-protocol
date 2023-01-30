@@ -32,7 +32,7 @@ echo "#endif /* VERSION_H_ */" >> $c_out_file
 ### Python ###
 
 # The output Python file
-python_outfile="protocol-implementation/Python/version.py"
+python_outfile="protocol-implementation/Python/src/emb_ser_protocol/version.py"
 
 # Parse the JSON file to extract the constants
 major=$(cat $input_file | jq -r '.VERSION_MAJOR')
@@ -43,6 +43,17 @@ rev=$(cat $input_file | jq -r '.VERSION_REV')
 echo "VERSION_MAJOR = $major" > $python_outfile
 echo "VERSION_MINOR = $minor" >> $python_outfile
 echo "VERSION_REV = $rev" >> $python_outfile
+
+# Read the version fields from the JSON file
+version_major=$(jq -r '.VERSION_MAJOR' $input_file)
+version_minor=$(jq -r '.VERSION_MINOR' $input_file)
+version_rev=$(jq -r '.VERSION_REV' $input_file)
+
+# Create the version string
+version="$major.$minor.$rev"
+
+# Insert the version string into the pyproject.toml file
+sed -i "s/version = \".*\"/version = \"$version\"/" protocol-implementation/Python/pyproject.toml
 
 ### Kotlin ###
 
@@ -75,6 +86,7 @@ sed -i "s/version = \".*\"/version = \"$version\"/" protocol-implementation/Kotl
 # Add and commit the version.json file
 #./../../protocol-implementation/Kotlin/gradlew build
 git add protocol-implementation/Kotlin/serial-protocol/build.gradle.kts
+git add protocol-implementation/Python/pyproject.toml
 git add $input_file
 git add $python_outfile
 git add $c_out_file
