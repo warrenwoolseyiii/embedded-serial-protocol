@@ -1,4 +1,5 @@
 from enum import Enum
+import version as ver
 
 
 # Enumeration of errors in the state machine
@@ -236,3 +237,7 @@ def build_message(type, addr, payload):
     # Return the message
     msg.error = error_state.NO_ERROR
     return msg
+
+# Get the version information from the library
+def get_version():
+    return ver.VERSION_MAJOR, ver.VERSION_MINOR, ver.VERSION_REV

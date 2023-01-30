@@ -270,6 +270,11 @@ class TestParser(unittest.TestCase):
         for i in range(msg_len):
             self.assertEqual(msg1[8 + i], msg_list[0].msg_payload[i])
 
+    # Print the version information
+    def test_print_version(self):
+        major, minor, rev = prot.get_version()
+        print("Version: {}.{}.{}".format(major, minor, rev))
+
 
 if __name__ == '__main__':
     unittest.main()
