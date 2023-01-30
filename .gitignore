@@ -2,7 +2,8 @@
 protocol-implementation/C/test/build
 
 # Python linking directory
-protocol-implementation/Python/__pycache__
+protocol-implementation/Python/src/emb_ser_protocol/__pycache__
+protocol-implementation/Python/dist
 
 # Example build directory
 examples/Arduino/sketches/basic_example/build/

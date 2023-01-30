@@ -1,0 +1,21 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+[project]
+name = "emb_ser_protocol"
+version = "1.0.22"
+authors = [
+  { name="Warren Woolsey", email="budgettsfrog@protonmail.com" },
+]
+description = "A simple serial protocol for communicating with embedded devices."
+readme = "README.md"
+requires-python = ">=3.7"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/pypa/emb_ser_protocol"
+"Bug Tracker" = "https://github.com/pypa/emb_ser_protocol/issues"
