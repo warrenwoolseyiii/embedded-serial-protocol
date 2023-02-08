@@ -5,6 +5,10 @@ on:
     tags:
       - '*'
 
+defaults:
+  run:
+    working-directory: protocol-implementation/Kotlin
+
 jobs:
   Publish:
     runs-on: ubuntu-latest
@@ -19,12 +23,10 @@ jobs:
         distribution: 'temurin'
     - name: Clean Java
       uses: gradle/gradle-build-action@67421db6bd0bf253fb4bd25b31ebb98943c375e1
-      working-directory: protocol-implementation/Kotlin
       with:
         arguments: clean
     - name: Build Java
       uses: gradle/gradle-build-action@67421db6bd0bf253fb4bd25b31ebb98943c375e1
-      working-directory: protocol-implementation/Kotlin
       with:
         arguments: build
     - name: Release
