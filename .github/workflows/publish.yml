@@ -28,7 +28,7 @@ jobs:
     - name: Release
       run: |
         version="$(./utilities/version/get_version.sh)"
-        gh release create "$version" protocol-implementation/Kotlin/serial-protocol/build/libs/*.jar --title "$version" --generate-notes --repo https://github.com/warrenwoolseyiii/embedded-serial-protocol --target main
+        gh release create "$version" protocol-implementation/Kotlin/serial-protocol/build/libs/*.jar --title "$version" --generate-notes --repo https://github.com/warrenwoolseyiii/embedded-serial-protocol --target git-packages
       shell: bash
       env:
         GH_TOKEN: ${{ github.token }}
