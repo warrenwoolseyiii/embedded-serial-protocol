@@ -26,7 +26,7 @@ jobs:
     - name: Build Java
       run: ./gradlew build
     - name: Release
-    - working-directory: embedded-serial-protocol
+      working-directory: embedded-serial-protocol
       run: |
         version="$(./utilities/version/get_version.sh)"
         gh release create "$version" protocol-implementation/Kotlin/serial-protocol/build/libs/*.jar --title "$version" --generate-notes --repo https://github.com/warrenwoolseyiii/embedded-serial-protocol --target git-packages
