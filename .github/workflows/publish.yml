@@ -31,9 +31,8 @@ jobs:
       env:
         GH_TOKEN: ${{ github.token }}
     - name: Publish to GitHub Packages
-      uses: gradle/gradle-build-action@67421db6bd0bf253fb4bd25b31ebb98943c375e1
-      with:
-        arguments: publish
+      run: ./gradlew publish
+      working-directory: protocol-implementation/Kotlin
       env:
         GITHUB_ACTOR: ${{ github.actor }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
