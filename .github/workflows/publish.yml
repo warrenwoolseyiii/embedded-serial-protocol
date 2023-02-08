@@ -18,11 +18,11 @@ jobs:
         java-version: '11'
         distribution: 'temurin'
     - name: Clean Java
+      run: ./gradlew clean
       working-directory: protocol-implementation/Kotlin
-        run: ./gradlew clean
     - name: Build Java
+      run: ./gradlew build
       working-directory: protocol-implementation/Kotlin
-        run: ./gradlew build
     - name: Release
       run: |
         version="$(./utilities/version/get_version.sh)"
