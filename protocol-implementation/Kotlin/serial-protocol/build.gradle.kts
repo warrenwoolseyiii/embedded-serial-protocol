@@ -6,13 +6,15 @@
  * User Manual available at https://docs.gradle.org/7.5.1/userguide/building_java_projects.html
  */
 
-version = "1.0.20"
+version = "1.0.37"
 plugins {
     // Apply the org.jetbrains.kotlin.jvm Plugin to add support for Kotlin.
     id("org.jetbrains.kotlin.jvm") version "1.6.21"
 
     // Apply the java-library plugin for API and implementation separation.
     `java-library`
+
+    id("maven-publish")
 }
 
 repositories {
@@ -38,4 +40,22 @@ dependencies {
 
     // This dependency is exported to consumers, that is to say found on their compile classpath.
     api("org.apache.commons:commons-math3:3.6.1")
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("serial-protocol") {
+            from(components["java"])
+        }
+    }
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/warrenwoolseyiii/embedded-serial-protocol")
+            credentials {
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
+            }
+        }
+    }
 }

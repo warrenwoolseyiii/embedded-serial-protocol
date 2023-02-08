@@ -1,5 +1,6 @@
 import unittest
-import protocol as prot
+import emb_ser_protocol.protocol as prot
+import emb_ser_protocol.version as ver
 from random import randint
 
 

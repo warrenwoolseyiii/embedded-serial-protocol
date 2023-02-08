@@ -1,5 +1,5 @@
 from enum import Enum
-import version as ver
+from emb_ser_protocol import version as ver
 
 
 # Enumeration of errors in the state machine

@@ -5,6 +5,7 @@ import sys
 import time
 import serial
 import importlib.util
+import emb_ser_protocol.protocol as protocol
 
 # Compare a message against an expected message
 
@@ -205,6 +206,7 @@ def main(argv):
         print("Expected response message type: " + str(exp_rsp_message_type))
         print("Expected response message payload: " +
               str(exp_rsp_message_payload))
+        print("emb_rb_protocol version " + str(protocol.get_version()))
         print("")
 
     # Parse the configuration file if it is specified
@@ -275,10 +277,6 @@ def main(argv):
         # Give an extra space if we are verbose
         if verbose:
             print("")
-
-    # Load the protocol module
-    protocol = module_from_file("protocol",
-                                "protocol-implementation/Python/protocol.py")
 
     # Set "my address"
     if verbose:
