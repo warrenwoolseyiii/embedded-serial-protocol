@@ -37,7 +37,9 @@ jobs:
         GITHUB_ACTOR: ${{ github.actor }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Clean Python
-    - run: rm -rf dist
+    - run: |
+        rm -rf dist
+        mkdir dist
     - working-directory: protocol-implementation/Python
     - name: Build Python
     - run: |
@@ -51,3 +53,4 @@ jobs:
     - with:
         user: __token__
         password: ${{ secrets.PYPI_API_TOKEN }}
+    - working-directory: protocol-implementation/Python
