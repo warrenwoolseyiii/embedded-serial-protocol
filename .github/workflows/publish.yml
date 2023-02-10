@@ -23,10 +23,10 @@ jobs:
     - name: Build Java
       run: ./gradlew build
       working-directory: protocol-implementation/Kotlin
-    - name: Release
+    - name: Release Java
       run: |
         version="$(./utilities/version/get_version.sh)"
-        gh release create "$version" protocol-implementation/Kotlin/serial-protocol/build/libs/*.jar --title "$version" --generate-notes --repo https://github.com/warrenwoolseyiii/embedded-serial-protocol --target main
+        gh release create "$version" protocol-implementation/Kotlin/serial-protocol/build/libs/*.jar --title "$version" --generate-notes --repo https://github.com/warrenwoolseyiii/embedded-serial-protocol --target pypi-publish-workflow
       shell: bash
       env:
         GH_TOKEN: ${{ github.token }}
@@ -36,3 +36,18 @@ jobs:
       env:
         GITHUB_ACTOR: ${{ github.actor }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Clean Python
+    - run: rm -rf dist
+    - working-directory: protocol-implementation/Python
+    - name: Build Python
+    - run: |
+        python3 -m pip install --upgrade build
+        python3 -m build
+    - working-directory: protocol-implementation/Python
+    - name: Publish Python
+    - run: |
+        python3 -m pip install --upgrade twine
+        python3 -m twine upload --repository pypi dist/*
+    - with:
+        user: __token__
+        password: ${{ secrets.PYPI_API_TOKEN }}
