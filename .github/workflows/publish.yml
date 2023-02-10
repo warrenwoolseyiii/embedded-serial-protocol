@@ -44,11 +44,11 @@ jobs:
       env:
         PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
       working-directory: protocol-implementation/Python
-    #- name: Build Python
-    #  run: |
-    #    python3 -m pip install --upgrade build
-    #    python3 -m build
-    #  working-directory: protocol-implementation/Python
+    - name: Build Python
+      run: |
+        python3 -m pip install --upgrade build
+        python3 -m build
+      working-directory: protocol-implementation/Python
     #- name: Publish Python
     #  run: |
     #    python3 -m pip install --upgrade twine
