@@ -1,3 +1,21 @@
+
+/*DISCLAIMER:
+
+This code is protected under the MIT open source license. The code is provided
+"as is" without warranty of any kind, either express or implied, including but
+not limited to the implied warranties of merchantability, fitness for a particular
+purpose, or non-infringement. In no event shall the author or any other party be
+liable for any direct, indirect, incidental, special, exemplary, or consequential
+damages, however caused and on any theory of liability, whether in contract,
+strict liability, or tort (including negligence or otherwise), arising in any way
+out of the use of this code or performance or use of the results of this code. By
+using this code, you agree to hold the author and any other party harmless from
+any and all liability and to use the code at your own risk.
+
+This code was written by GitHub user: budgettsfrog
+Contact: budgettsfrog@protonmail.com
+GitHub: https://github.com/warrenwoolseyiii*/
+
 #include <serial_protocol.h>
 #include <user_impl.h>
 #include <string.h>
@@ -163,4 +181,27 @@ int send_message(uint8_t dest_addr, uint8_t type, uint8_t *payload, uint32_t pay
     // Send the message!
     user_serial_tx(tx_buff, payload_length + NUM_OVER_HEAD_BYTES);
     return SP_OK;
+}
+
+char *get_version()
+{
+    int major = VERSION_MAJOR;
+    int minor = VERSION_MINOR;
+    int rev = VERSION_REV;
+
+    // Place into a string, do not use dynamic memory allocation, don't use sprintf because it's not available on all platforms and we want to keep size to a minumum.
+    static char version[32] = {0};
+    version[0] = 'v';
+    version[1] = (char)((major / 100) + '0');
+    version[2] = (char)(((major % 100) / 10) + '0');
+    version[3] = (char)((major % 10) + '0');
+    version[4] = '.';
+    version[5] = (char)((minor / 100) + '0');
+    version[6] = (char)(((minor % 100) / 10) + '0');
+    version[7] = (char)((minor % 10) + '0');
+    version[8] = '.';
+    version[9] = (char)((rev / 100) + '0');
+    version[10] = (char)(((rev % 100) / 10) + '0');
+    version[11] = (char)((rev % 10) + '0');
+    return version;
 }
