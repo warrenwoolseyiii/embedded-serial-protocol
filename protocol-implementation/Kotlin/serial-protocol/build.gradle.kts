@@ -6,7 +6,8 @@
  * User Manual available at https://docs.gradle.org/7.5.1/userguide/building_java_projects.html
  */
 
-version = "1.0.37"
+group = "com.warrenwoolseyiii"
+version = "1.0.39"
 plugins {
     // Apply the org.jetbrains.kotlin.jvm Plugin to add support for Kotlin.
     id("org.jetbrains.kotlin.jvm") version "1.6.21"
@@ -44,7 +45,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("serial-protocol") {
+        create<MavenPublication>("embedded-serial-protocol") {
             from(components["java"])
         }
     }
