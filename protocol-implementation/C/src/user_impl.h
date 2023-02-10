@@ -8,17 +8,23 @@ extern "C"
 
 #include <stdint.h>
 
-    /*
-     * User implementation of the receive message function. The serial parser
-     * calls this function when a message is received. The entire buffer, including
-     * the header and the checksum, is passed to the function.
+    /**
+     * @brief User implementation of the receive message function. This function is called by the
+     * serial parser when a message has been received. The entire buffer, including the
+     * header and the checksum, is passed to the function.
+     *
+     * @param msg_buf - pointer to the message buffer, which contains the entire message, including the header and the checksum.
+     * @param msg_len - length of the message, including the header and the checksum.
      */
     void user_rcv_message(uint8_t *msg_buf, uint32_t msg_len);
 
-    /*
-     * User implementation of the send message function. This function is called by the
-     * serial parser when a message needs to be sent. The entire buffer, including the
-     * header and the checksum, is passed to the function.
+    /**
+     * @brief User implementation of the transmit function. This function is called by send_message
+     * to transmit the message on whatever physical hardware bus is being utilized. The entire message,
+     * including the header and the checksum, is passed to the function.
+     *
+     * @param msg_buf - pointer to the message buffer, which contains the entire message, including the header and the checksum.
+     * @param msg_len - length of the message, including the header and the checksum.
      */
     void user_serial_tx(uint8_t *msg_buf, uint32_t msg_len);
 
