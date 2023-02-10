@@ -164,3 +164,26 @@ int send_message(uint8_t dest_addr, uint8_t type, uint8_t *payload, uint32_t pay
     user_serial_tx(tx_buff, payload_length + NUM_OVER_HEAD_BYTES);
     return SP_OK;
 }
+
+char *get_version()
+{
+    int major = VERSION_MAJOR;
+    int minor = VERSION_MINOR;
+    int rev = VERSION_REV;
+
+    // Place into a string, do not use dynamic memory allocation, don't use sprintf because it's not available on all platforms and we want to keep size to a minumum.
+    static char version[32] = {0};
+    version[0] = 'v';
+    version[1] = (char)((major / 100) + '0');
+    version[2] = (char)(((major % 100) / 10) + '0');
+    version[3] = (char)((major % 10) + '0');
+    version[4] = '.';
+    version[5] = (char)((minor / 100) + '0');
+    version[6] = (char)(((minor % 100) / 10) + '0');
+    version[7] = (char)((minor % 10) + '0');
+    version[8] = '.';
+    version[9] = (char)((rev / 100) + '0');
+    version[10] = (char)(((rev % 100) / 10) + '0');
+    version[11] = (char)((rev % 10) + '0');
+    return version;
+}

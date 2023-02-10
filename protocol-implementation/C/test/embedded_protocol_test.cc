@@ -33,6 +33,13 @@ public:
   // put in any custom data members that you need
 };
 
+TEST_F(MessageBuilding, Version)
+{
+  char *s = get_version();
+  ASSERT_TRUE(s != NULL);
+  printf("Version: %s\n", s);
+}
+
 TEST_F(MessageBuilding, Valid_Header_No_Payload)
 {
   uint8_t test_addr = 0;
