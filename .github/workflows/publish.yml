@@ -37,20 +37,23 @@ jobs:
         GITHUB_ACTOR: ${{ github.actor }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Clean Python
-    - run: |
+      run: |
         rm -rf dist
         mkdir dist
-    - working-directory: protocol-implementation/Python
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      working-directory: protocol-implementation/Python
     - name: Build Python
-    - run: |
+      run: |
         python3 -m pip install --upgrade build
         python3 -m build
-    - working-directory: protocol-implementation/Python
+      working-directory: protocol-implementation/Python
     - name: Publish Python
-    - run: |
+      run: |
         python3 -m pip install --upgrade twine
         python3 -m twine upload --repository pypi dist/*
-    - with:
+      with:
         user: __token__
         password: ${{ secrets.PYPI_API_TOKEN }}
-    - working-directory: protocol-implementation/Python
+      working-directory: protocol-implementation/Python
