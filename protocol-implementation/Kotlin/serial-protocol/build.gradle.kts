@@ -7,7 +7,7 @@
  */
 
 group = "com.warrenwoolseyiii"
-version = "1.1.9"
+version = "1.1.10"
 plugins {
     // Apply the org.jetbrains.kotlin.jvm Plugin to add support for Kotlin.
     id("org.jetbrains.kotlin.jvm") version "1.6.21"
