@@ -51,4 +51,3 @@ jobs:
       run:
         python3 -m twine upload --repository pypi dist/* -u __token__ -p ${{ secrets.PYPI_API_TOKEN }}
       working-directory: protocol-implementation/Python
-
