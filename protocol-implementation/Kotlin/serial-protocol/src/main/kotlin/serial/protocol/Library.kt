@@ -9,7 +9,9 @@ import Version.VERSION_REV
 
 class CommsProtocol {
 
-    // Public constants for byte positions and values
+    /**
+     * Companion object to hold constants
+     */
     companion object {
         const val HEADER_POS_0 = 0
         const val HEADER_POS_1 = 1
@@ -27,7 +29,15 @@ class CommsProtocol {
         const val NUM_OVERHEAD_BYTES = 10
     }
 
-    // Data class for message
+    /**
+     * Data class to represent a message
+     * @param srcAddress Source address of the message (coming from)
+     * @param tgtAddress Target address of the message (going to)
+     * @param msgType Message type of the message
+     * @param payloadLength Length of the payload in bytes
+     * @param payload Payload of the message
+     * @param crc CRC of the message
+     */
     data class Message(
             val srcAddress: Byte,
             val tgtAddress: Byte,
@@ -37,7 +47,10 @@ class CommsProtocol {
             val crc: Short
     ) {
 
-        // Method to convert message to byte array
+        /**
+         * Method to convert message to byte array
+         * @return ByteArray object containing the message
+         */
         fun toByteArray(): ByteArray {
             val byteArray = ByteArray(payloadLength + NUM_OVERHEAD_BYTES)
             byteArray[HEADER_POS_0] = HEADER_0
@@ -56,7 +69,11 @@ class CommsProtocol {
             return byteArray
         }
 
-        // Method to convert byte array to message
+        /**
+         * Method to convert byte array to message
+         * @param byteArray ByteArray object containing the message
+         * @return Message object containing the message
+         */
         fun fromByteArray(byteArray: ByteArray): Message {
             val srcAddress = byteArray[SRC_ADDRESS_POS]
             val tgtAddress = byteArray[TGT_ADDRESS_POS]
@@ -69,14 +86,14 @@ class CommsProtocol {
             for (i in 0 until payloadLength) {
                 payload[i] = byteArray[PAYLOAD_POS + i]
             }
-            val crc =
-                    ((byteArray[byteArray.size - 2].toInt() shl 8) or
-                                    byteArray[byteArray.size - 1].toInt())
-                            .toShort()
+            val crc = ((byteArray[byteArray.size - 2].toInt() shl 8) or byteArray[byteArray.size - 1].toInt()).toShort()
             return Message(srcAddress, tgtAddress, msgType, payloadLength, payload, crc)
         }
 
-        // Method to calculate CRC
+        /**
+         * Method to calculate the CRC of this message
+         * @return CRC of this message
+         */
         fun calculateCrc(): Short {
             val array = toByteArray()
             var crc = 0xFFFF
@@ -93,7 +110,9 @@ class CommsProtocol {
             return crc.toShort()
         }
 
-        // Print the msg fields
+        /**
+         * Method to print the message to the console
+         */
         fun printMsg() {
             println("srcAddress: $srcAddress")
             println("tgtAddress: $tgtAddress")
@@ -106,7 +125,7 @@ class CommsProtocol {
         }
     }
 
-    // Public address fields
+    // Public fields
     var myAddr: Byte = 0x00.toByte()
     var broadcastAddr: Byte = 0xFF.toByte()
     var ignoreSrcAddr: Boolean = false
@@ -124,14 +143,23 @@ class CommsProtocol {
     private var currentPayloadNdx = 0
     private var currentCrc: Short = 0
 
-    // Method to log to the console or other source
+    /**
+     * Method to log output to the console or other output of the implementer's choice
+     * @param msg Message to log in string format
+     */
     fun log(msg: String) {
         if (logEnabled) {
             println(msg)
         }
     }
 
-    // Method to create a message, returns a Message object
+    /**
+     * Method to create a message
+     * @param tgtAddress Target address of the message (going to)
+     * @param msgType Message type of the message
+     * @param payload Payload of the message
+     * @return Message object containing the message
+     */
     fun createMessage(tgtAddress: Byte, msgType: Byte, payload: ByteArray): Message {
         // Check the payload length and throw an exception if it is too long
         if (payload.size > MAX_PAYLOAD_LENGTH) {
@@ -146,7 +174,12 @@ class CommsProtocol {
         return msg
     }
 
-    // Method to parse an incoming byte array, returns an array of Message objects
+    /**
+     * Method to parse a byte array into a list of messages - use this function to parse all incoming bytes
+     * from the communication channel.
+     * @param byteArray ByteArray object containing raw bytes from the communication channel
+     * @return ArrayList of Message objects containing the messages, which may be empty if no messages were found
+     */
     fun parseMessage(byteArray: ByteArray): ArrayList<Message> {
         val messages = ArrayList<Message>()
 
@@ -242,7 +275,9 @@ class CommsProtocol {
         return messages
     }
 
-    // Method that resets the parsing state machine
+    /**
+     * Method to reset the parser state machine
+     */
     fun resetParser() {
         state = 0
         currentSrcAddr = 0x00.toByte()
@@ -254,7 +289,10 @@ class CommsProtocol {
         currentCrc = 0
     }
 
-    // Method to return the version information
+    /**
+     * Method to get the version of the library
+     * @return String containing the version of the library
+     */
     fun getVersion(): String {
         return "$VERSION_MAJOR.$VERSION_MINOR.$VERSION_REV"
     }
