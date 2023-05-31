@@ -147,7 +147,7 @@ class LibraryTest {
         classUnderTest.myAddr = 0x02.toByte()
         val msg = classUnderTest.createMessage(tgtAddress = 0x02.toByte(), msgType = 0x01.toByte(), payload = byteArrayOf(0x01.toByte(), 0x02.toByte()))
         val msgBytes = msg.toByteArray()
-        val parsedMsg = classUnderTest.parseMessage(msgBytes)
+        val parsedMsg = classUnderTest.parseMessage(msgBytes, msgBytes.size)
 
         // Check the parsed message list size, it should be 1 message long
         assertTrue(parsedMsg.size == 1, "parsedMsg should be 1 message long")
@@ -171,7 +171,7 @@ class LibraryTest {
         val msg = classUnderTest.createMessage(tgtAddress = 0x02.toByte(), msgType = 0x01.toByte(), payload = byteArrayOf(0x01.toByte(), 0x02.toByte()))
         val msg2 = classUnderTest.createMessage(tgtAddress = 0x02.toByte(), msgType = 0x01.toByte(), payload = byteArrayOf(0x01.toByte(), 0x02.toByte()))
         val msgBytes = msg.toByteArray() + msg2.toByteArray()
-        val parsedMsg = classUnderTest.parseMessage(msgBytes)
+        val parsedMsg = classUnderTest.parseMessage(msgBytes, msgBytes.size)
 
         // Check the parsed message list size, it should be 2 messages long
         assertTrue(parsedMsg.size == 2, "parsedMsg should be 2 messages long")
@@ -197,6 +197,30 @@ class LibraryTest {
         assertTrue(parsedMsgObj2.payload[1] == 0x02.toByte(), "parsedMsgObj2.payload[1] should be 0x02")
     }
 
+    // Test that multiple basic messages are correctly parsed
+    @Test fun testParseSingleMessageFromMulitple() {
+        val classUnderTest = CommsProtocol()
+        classUnderTest.myAddr = 0x02.toByte()
+        val msg = classUnderTest.createMessage(tgtAddress = 0x02.toByte(), msgType = 0x01.toByte(), payload = byteArrayOf(0x01.toByte(), 0x02.toByte()))
+        val msg2 = classUnderTest.createMessage(tgtAddress = 0x02.toByte(), msgType = 0x01.toByte(), payload = byteArrayOf(0x01.toByte(), 0x02.toByte()))
+        val msgBytes = msg.toByteArray() + msg2.toByteArray()
+        val parsedMsg = classUnderTest.parseMessage(msgBytes, msgBytes.size / 2)
+
+        // Check the parsed message list size, it should be 2 messages long
+        assertTrue(parsedMsg.size == 1, "parsedMsg should be 1 messages long")
+
+        // Get the message objects from the list
+        val parsedMsgObj = parsedMsg[0]
+
+        // Check the first message object
+        assertTrue(parsedMsgObj.srcAddress == classUnderTest.myAddr, "parsedMsgObj.srcAddress should be myAddr")
+        assertTrue(parsedMsgObj.tgtAddress == 0x02.toByte(), "parsedMsgObj.tgtAddress should be 0x02")
+        assertTrue(parsedMsgObj.msgType == 0x01.toByte(), "parsedMsgObj.msgType should be 0x01")
+        assertTrue(parsedMsgObj.payload.size == 2, "parsedMsgObj.payload should be 2 bytes long")
+        assertTrue(parsedMsgObj.payload[0] == 0x01.toByte(), "parsedMsgObj.payload[0] should be 0x01")
+        assertTrue(parsedMsgObj.payload[1] == 0x02.toByte(), "parsedMsgObj.payload[1] should be 0x02")
+    }
+
     // Test that a basic message from a sender and broadcast message is correctly parsed
     @Test fun testParseMessageFromSenderAndBroadcast() {
         val classUnderTest = CommsProtocol()
@@ -204,7 +228,7 @@ class LibraryTest {
         val msg = classUnderTest.createMessage(tgtAddress = 0x02.toByte(), msgType = 0x01.toByte(), payload = byteArrayOf(0x01.toByte(), 0x02.toByte()))
         val msg2 = classUnderTest.createMessage(tgtAddress = classUnderTest.broadcastAddr, msgType = 0x01.toByte(), payload = byteArrayOf(0x01.toByte(), 0x02.toByte()))
         val msgBytes = msg.toByteArray() + msg2.toByteArray()
-        val parsedMsg = classUnderTest.parseMessage(msgBytes)
+        val parsedMsg = classUnderTest.parseMessage(msgBytes, msgBytes.size)
 
         // Check the parsed message list size, it should be 2 messages long
         assertTrue(parsedMsg.size == 2, "parsedMsg should be 2 messages long")
@@ -236,13 +260,19 @@ class LibraryTest {
         classUnderTest.myAddr = 0x02.toByte()
         val msg = classUnderTest.createMessage(tgtAddress = 0x02.toByte(), msgType = 0x01.toByte(), payload = byteArrayOf(0x01.toByte(), 0x02.toByte()))
         val msgBytes = msg.toByteArray()
-        val parsedMsg = classUnderTest.parseMessage(msgBytes.sliceArray(0..(msgBytes.size / 2)))
+
+        // Break msgBytes into two halves
+        val msgBytes1 = msgBytes.sliceArray(0..(msgBytes.size / 2))
+        val msgBytes2 = msgBytes.sliceArray(((msgBytes.size / 2) + 1)..(msgBytes.size - 1))
+
+        // Parse half of the message
+        val parsedMsg = classUnderTest.parseMessage(msgBytes1, msgBytes1.size)
         
         // Check the parsed message list size, it should be 0 messages long
         assertTrue(parsedMsg.size == 0, "parsedMsg should be 0 messages long")
 
         // Parse the rest of the message
-        val parsedMsg2 = classUnderTest.parseMessage(msgBytes.sliceArray(((msgBytes.size / 2) + 1)..(msgBytes.size - 1)))
+        val parsedMsg2 = classUnderTest.parseMessage(msgBytes2, msgBytes2.size)
 
         // Check the parsed message list size, it should be 1 messages long
         assertTrue(parsedMsg2.size == 1, "parsedMsg2 should be 1 messages long")
@@ -265,7 +295,7 @@ class LibraryTest {
         classUnderTest.myAddr = 0x02.toByte()
         val msg = classUnderTest.createMessage(tgtAddress = 0x01.toByte(), msgType = 0x01.toByte(), payload = byteArrayOf(0x01.toByte(), 0x02.toByte()))
         val msgBytes = msg.toByteArray()
-        val parsedMsg = classUnderTest.parseMessage(msgBytes)
+        val parsedMsg = classUnderTest.parseMessage(msgBytes, msgBytes.size)
 
         // Check the parsed message list size, it should be 0 messages long
         assertTrue(parsedMsg.size == 0, "parsedMsg should be 0 messages long")
