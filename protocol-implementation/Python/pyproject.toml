@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 [project]
 name = "emb_ser_protocol"
-version = "1.1.20"
+version = "1.1.21"
 authors = [
   { name="Warren Woolsey", email="budgettsfrog@protonmail.com" },
 ]

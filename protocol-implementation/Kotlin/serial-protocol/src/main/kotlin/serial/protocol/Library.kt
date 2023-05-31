@@ -196,13 +196,20 @@ class CommsProtocol {
      * Method to parse a byte array into a list of messages - use this function to parse all incoming bytes
      * from the communication channel.
      * @param byteArray ByteArray object containing raw bytes from the communication channel
+     * @param len Length of the byte array
      * @return ArrayList of Message objects containing the messages, which may be empty if no messages were found
      */
-    fun parseMessage(byteArray: ByteArray): ArrayList<Message> {
+    fun parseMessage(byteArray: ByteArray, len: Int): ArrayList<Message> {
         val messages = ArrayList<Message>()
 
+        // Make sure the length is not greater than the byte array size
+        var length = len
+        if (length > byteArray.size) {
+            length = byteArray.size
+        }
+
         // Parsing state machine looks at the header bytes first
-        for (i in 0 until byteArray.size) {
+        for (i in 0 until length) {
             log("Parsing byte ${byteArray[i]}")
             log("State is $state")
             when (state) {
